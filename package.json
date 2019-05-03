@@ -1,0 +1,42 @@
+{
+  "name": "unicode-default-word-boundary",
+  "version": "0.1.0",
+  "description": "Implements the Unicode default word boundary specification (UAX #29 §4.1)",
+  "main": "index.js",
+  "scripts": {
+    "test": "ava"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eddieantonio/unicode-default-word-boundary.git"
+  },
+  "keywords": [
+    "unicode",
+    "word",
+    "boundary",
+    "default"
+  ],
+  "author": "Eddie Antonio Santos",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/eddieantonio/unicode-default-word-boundary/issues"
+  },
+  "homepage": "https://github.com/eddieantonio/unicode-default-word-boundary#readme",
+  "devDependencies": {
+    "ava": "^1.4.1",
+    "ts-node": "^8.1.0",
+    "typescript": "^3.4.5"
+  },
+  "ava": {
+    "sources": [
+      "**/*.ts"
+    ],
+		"compileEnhancements": false,
+		"extensions": [
+			"ts"
+		],
+		"require": [
+			"ts-node/register"
+		]
+  }
+}
