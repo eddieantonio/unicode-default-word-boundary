@@ -128,10 +128,48 @@ function findBoundaries(text: string): number[] {
     
     // Do not break within sequences of digits, or digits adjacent to letters.
     // e.g., "3a" or "A3"
-  }
+    // WB8
+    if (left === 'Numeric' && right === 'Numeric')
+      return;
+    // WB9
+    if (isAHLetter(left) && right === 'Numeric')
+      return;
+    // WB10
+    if (left === 'Numeric' && isAHLetter(right))
+      return;
 
-  // XXX: TEMP: will be handled by rule above.
-  boundaries.push(text.length);
+    // Do not break within sequences, such as 3.2, 3,456.789
+    // WB11
+    if (lookbehind === 'Numeric' && right === 'Numeric' &&
+        (left === 'MidNum' || isMidNumLetQ(left)))
+      return;
+    // WB12
+    if (left === 'Numeric' && lookahead === 'Numeric' &&
+        (right === 'MidNum' || isMidNumLetQ(right)))
+      return;
+
+    // WB13: Do not break between Katakana
+    if (left === 'Katakana' && right === 'Katakana')
+      return;
+
+    // Do not break from extenders (e.g., U+202F NARROW NO-BREAK SPACE)
+    // WB13a
+    if ((isAHLetter(left) || 
+         left === 'Numeric' ||
+         left === 'Katakana' ||
+         left === 'ExtendNumLet') && right === 'ExtendNumLet')
+      return;
+    // WB13b
+    if ((isAHLetter(right) || 
+         right === 'Numeric' ||
+         right === 'Katakana') && left === 'ExtendNumLet')
+      return;
+
+    // TODO: WB15 and WB16: Do not break between an odd number of regional flag indicators.
+
+    // WB999: Otherwise, break EVERYWHERE (including around ideographs)
+    return breakHere();
+  }
 
   return boundaries;
 
@@ -218,6 +256,6 @@ function isExtendOrFormat(prop: WordBreakProperty): boolean {
 
 function isWord(word: string): boolean {
   return Array.from(word).map(property).some(wb => (
-    isAHLetter(wb) || wb === 'Numeric'
+    isAHLetter(wb) || wb === 'Numeric' || wb === 'Katakana'
   ));
 }
