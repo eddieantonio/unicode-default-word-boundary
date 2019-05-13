@@ -26,18 +26,23 @@ import {WordBreakProperty, WORD_BREAK_PROPERTY} from './gen/WordBreakProperty';
 
 export function splitWords(text: string): string[] {
   let boundaries = findBoundaries(text);
-  let words = [];
+  let chunks = [];
   for (let i = 0; i < boundaries.length - 1; i++) {
-    words.push(
-      text.substr(boundaries[i], boundaries[i + 1])
-    );
+    let start = boundaries[i];
+    let end = boundaries[i + 1];
+    let chunk = text.substring(start, end);
+    chunks.push(chunk);
   }
 
-  return words;
+  return chunks.filter(isWord);
 }
 
 // Internal functions
 
+/**
+ * Return an array of string indicies where a word break should occur. That is,
+ * there should be a break BEFORE each index returned.
+ */
 function findBoundaries(text: string): number[] {
   // WB1 and WB2: no boundaries if given an empty string.
   if (text.length === 0) {
@@ -56,7 +61,7 @@ function findBoundaries(text: string): number[] {
   let len = codepoints.length;
 
   // Now, let's find the next break!
-  let pos = 0;
+  let pos = -1; // pos is the position of the LEFT character.
   while (pos < codepoints.length) {
     // This function will ALWAYS increment `pos`,
     // hence the while loop will eventually 
@@ -77,11 +82,11 @@ function findBoundaries(text: string): number[] {
     if (left === 'CR' && right === 'LF')
       return;
 
-    // WB3b: Otherwise, break before...
-    if (right === 'Newline' || right == 'CR' || right === 'LF') 
+    // WB3b: Otherwise, break after...
+    if (left === 'Newline' || left == 'CR' || left === 'LF') 
       return breakHere();
-    // WB3a: ...and after newlines
-    if (left === 'Newline' || left === 'CR' || left === 'LF') 
+    // WB3a: ...and before newlines
+    if (right === 'Newline' || right === 'CR' || right === 'LF') 
       return breakHere();
     
     // TODO: WB3c: ZWJ × \p{Extended_Pictographic}
@@ -132,27 +137,29 @@ function findBoundaries(text: string): number[] {
 
   // Macro to push the current position as a word break position.
   function breakHere() {
-    boundaries.push(pos);
+    boundaries.push(pos + 1);
   }
 
   /**
    * WB4: Returns the next character, skipping Extend and Format characters.
    */
-  function skipToNext(pos: number) {
+  function skipToNext(idx: number): number {
     // WB4: Skip over Extend and Format Characters.
-    if (pos >= len)
+    if (idx >= len)
       return len;
     
     do {
-      pos++;
+      idx++;
     } while (
-      codepoints[pos] !== undefined &&
-      isExtendOrFormat(property(codepoints[pos]))
+      codepoints[idx] !== undefined &&
+      isExtendOrFormat(property(codepoints[idx]))
     );
+
+    return idx;
   }
 
-  function skipTwice(pos) {
-    return skipToNext(skipToNext(pos));
+  function skipTwice(idx: number): number {
+    return skipToNext(skipToNext(idx));
   }
 }
 
@@ -207,4 +214,8 @@ function isMidNumLetQ(prop: WordBreakProperty): boolean {
 
 function isExtendOrFormat(prop: WordBreakProperty): boolean {
   return prop === 'Extend' || prop === 'Format';
+}
+
+function isWord(word: string): boolean {
+  return !!/\w|\d/.exec(word);
 }
