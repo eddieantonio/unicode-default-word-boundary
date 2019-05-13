@@ -45,6 +45,10 @@ let ranges = wordBoundaryFile.split('\n')
     return a.start - b.start;
   });
 
+// Also add pseudo-categories of start-of-text and end-of-text:
+categories.add('sot');
+categories.add('eot');
+
 // Save the output in the gen directory.
 let stream = fs.createWriteStream(
   path.join(__dirname, '..', 'gen', 'WordBreakProperty.ts')
