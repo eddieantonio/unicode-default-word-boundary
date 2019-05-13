@@ -3,22 +3,13 @@ import test from 'ava';
 import {splitWords} from './';
 
 
-test('empty', t => {
-  t.deepEqual(splitWords(''), []);
-});
+test('empty', wordBoundaryRule, '', []);
 
-test('WB8', t => {
-  t.deepEqual(splitWords('42'), ['42']);
-});
+test('WB8', wordBoundaryRule, '42', ['42']);
+test('WB9', wordBoundaryRule, '3a',  ['3a']);
+test('WB10', wordBoundaryRule, 'A3',  ['A3']);
 
-test('WB9', t => {
-  t.deepEqual(splitWords('3a'), ['3a']);
-});
-
-test('WB10', t => {
-  t.deepEqual(splitWords('A3'), ['A3']);
-});
-
-test.skip('simple example', t => {
-  t.deepEqual(splitWords('hello'), ['hello']);
-});
+/** Macro to test a word boundary rule. */
+function wordBoundaryRule(t, input: string, expected: string[]) {
+  t.deepEqual(splitWords(input), expected);
+}
