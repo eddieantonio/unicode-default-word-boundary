@@ -1,12 +1,16 @@
+#!/usr/bin/env node
+
 /**
- * Generates the TypeScript file for the binary search array data structure.
+ * Generates the TypeScript file for the binary search array data structure of
+ * the Word_Break property.
+ *
  * For internal use only. Please keep away from children.
  */
 const zlib = require('zlib');
 const fs = require('fs');
 const path = require('path');
 
-// Keep package major version number synced with the Unicode major version.
+// Ensure this package's major version number is in sync with the Unicode major version.
 const packageVersion = require('../package.json').version;
 const UNICODE_VERSION = packageVersion.split('.')[0] + '.0.0';
 let wordBoundaryFilename = path.join(__dirname, `./WordBreakProperty-${UNICODE_VERSION}.txt.gz`);
@@ -41,8 +45,13 @@ let ranges = wordBoundaryFile.split('\n')
     return a.start - b.start;
   });
 
+// Save the output in the gen directory.
+let stream = fs.createWriteStream(
+  path.join(__dirname, '..', 'gen', 'WordBreakProperty.ts')
+);
+
 // Generate the file!
-process.stdout.write(`// Automatically generated file. DO NOT MODIFY.
+stream.write(`// Automatically generated file. DO NOT MODIFY.
 /**
  * Valid values for a word break property.
  */
@@ -51,13 +60,13 @@ ${
   Array.from(categories).map(x => `  '${x}'`).join(' |\n')
 };
 
-interface WordBreakRange {
+export interface WordBreakRange {
   start: number; 
   end: number;
   value: WordBreakProperty;
 }
 
-export const WORD_BREAK_PROPERTY = [
+export const WORD_BREAK_PROPERTY: WordBreakRange[] = [
 ${
     ranges.map(({start, end, category}) =>(
     `  {start: 0x${start.toString(16).toUpperCase()}, end: 0x${end.toString(16).toUpperCase()}, value: '${category}'},`

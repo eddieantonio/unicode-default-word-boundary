@@ -4,7 +4,8 @@
   "description": "Implements the Unicode default word boundary specification (UAX #29 §4.1)",
   "main": "index.js",
   "scripts": {
-    "test": "ava"
+    "test": "ava",
+    "build": "./libexec/compile-word-break.js"
   },
   "repository": {
     "type": "git",
