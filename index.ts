@@ -217,5 +217,7 @@ function isExtendOrFormat(prop: WordBreakProperty): boolean {
 }
 
 function isWord(word: string): boolean {
-  return !!/\w|\d/.exec(word);
+  return Array.from(word).map(property).some(wb => (
+    isAHLetter(wb) || wb === 'Numeric'
+  ));
 }
