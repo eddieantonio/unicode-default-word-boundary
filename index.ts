@@ -256,6 +256,6 @@ function isExtendOrFormat(prop: WordBreakProperty): boolean {
 
 function isWord(word: string): boolean {
   return Array.from(word).map(property).some(wb => (
-    isAHLetter(wb) || wb === 'Numeric' || wb === 'Katakana'
+    isAHLetter(wb) || wb === 'Numeric' || wb === 'Katakana' || wb === 'Other'
   ));
 }

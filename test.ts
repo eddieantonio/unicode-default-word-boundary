@@ -25,7 +25,7 @@ test('WB13', wordBoundaryRule, 'エラー',  ['エラー']);
 test('WB13a && WB13b', wordBoundaryRule, 'ᐁ ᓂᐸᐟ',  ['ᐁ ᓂᐸᐟ']);
 // TODO: this one is tough because there can be an aribrary amount of RI indicators.
 test.skip('WB15', wordBoundaryRule, '🇨🇦🇰🇭',  ['🇨🇦🇰🇭']);
-test.only('WB99', wordBoundaryRule, '米饼',  ['米', '饼']);
+test('WB99', wordBoundaryRule, '米饼',  ['米', '饼']);
 
 /** Macro to test a word boundary rule. */
 function wordBoundaryRule(t, input: string, expected: string[]) {
