@@ -6,7 +6,7 @@
   "scripts": {
     "test": "ava",
     "build": "./libexec/compile-word-break.js",
-    "prepublish": "npm run build"
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
