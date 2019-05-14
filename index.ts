@@ -49,6 +49,15 @@ function findBoundaries(text: string): number[] {
     return [];
   }
 
+  // TODO: rewrite this code where property(char[pos]) == property(right)
+  // use a simple while loop, AND advance CODE UNIT BY CODE UNIT (account for
+  // surrogate pairs here directly).
+
+  // TODO: Explicitly keep track of the parity of regional flag indicators in order
+  // to implement WB15 at all (requires even number of regional flag indicators).
+
+  // TODO: Rewrite this to handle WB4 properly...
+
   let left: WordBreakProperty = 'sot';
   let right: WordBreakProperty;
   let lookahead: WordBreakProperty;

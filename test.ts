@@ -10,7 +10,7 @@ test('WB3', wordBoundaryRule, 'a\r\nb', ['a', 'b']);
 test('WB3a', wordBoundaryRule, '\na', ['a']);
 test('WB3b', wordBoundaryRule, 'a\n', ['a']);
 // TODO:  test for WB3c
-test.skip('WB3d', wordBoundaryRule, 'a \u2009 b', ['a', 'b'])
+test('WB3d', wordBoundaryRule, 'a \u2009 b', ['a', 'b'])
 test('WB5', wordBoundaryRule, 'aא', ['aא'])
 test('WB6 && WB7', wordBoundaryRule, "ain't", ["ain't"])
 test('WB7', wordBoundaryRule, "ain't", ["ain't"])
