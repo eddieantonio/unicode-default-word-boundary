@@ -1,10 +1,15 @@
 #!/usr/bin/env node
 
 /**
- * Generates the TypeScript file for the binary search array data structure of
- * the Word_Break property.
+ * Generates the TypeScript file for data required for the word boundary
+ * function:
+ *
+ *  - a sorted array to facilitate binary search of the Word_Break property.
+ *  - a regular expression that matches characters that have Extended_Pictographic=Yes.
  *
  * For internal use only. Please keep away from children.
+ *
+ * The generated file is saved to ../gen/WordBreakProperty.ts
  */
 const zlib = require('zlib');
 const fs = require('fs');
@@ -12,7 +17,13 @@ const path = require('path');
 
 const MAX_CODE_POINT = 0x10FFFF;
 
+// Where to get the data:
+//  - http://www.unicode.org/reports/tr51/#emoji_data
+//  - https://unicode.org/reports/tr41/tr41-24.html#Props0
+
 //////////////////////////////////// Main ////////////////////////////////////
+
+const generatedFilename = path.join(__dirname, '..', 'gen', 'WordBreakProperty.ts');
 
 // Ensure this package's major version number is in sync with the Unicode
 // major version.
@@ -24,9 +35,7 @@ const UNICODE_VERSION = packageVersion.split('.')[0] + '.0.0';
 let wordBoundaryFilename = path.join(__dirname, `./WordBreakProperty-${UNICODE_VERSION}.txt.gz`);
 let emojiDataFilename = path.join(__dirname, `./emoji-data-${UNICODE_VERSION}.txt.gz`);
 
-let wordBoundaryFile = zlib.gunzipSync(
-  fs.readFileSync(wordBoundaryFilename)
-).toString('utf8');
+///////////////////////////// Word_Boundary file /////////////////////////////
 
 // Extract the ranges IN ASCENDING ORDER from the file.
 // This will be the big binary search table.
@@ -45,10 +54,25 @@ for (let {property} of ranges) {
 categories.add('sot');
 categories.add('eot');
 
-// Save the output in the gen directory.
-let stream = fs.createWriteStream(
-  path.join(__dirname, '..', 'gen', 'WordBreakProperty.ts')
-);
+///////////////////////// Extended_Pictographic=Yes //////////////////////////
+
+let extendedPictographicCodePoints = readZippedCharacterPropertyFile(emojiDataFilename)
+  .filter(({property}) => property === 'Extended_Pictographic');
+
+let extendedPictographicRegExp = '/^[';
+for (let {start, end} of extendedPictographicCodePoints) {
+  if (start === end) {
+    extendedPictographicRegExp += toUnicodeEscape(start);
+  } else {
+    extendedPictographicRegExp += toUnicodeEscape(start) + '-' + toUnicodeEscape(end);
+  }
+}
+extendedPictographicRegExp += ']/u';
+
+//////////////////////// Creating the generated file /////////////////////////
+
+// Save the output in the gen/ directory.
+let stream = fs.createWriteStream(generatedFilename);
 
 // Generate the file!
 stream.write(`// Automatically generated file. DO NOT MODIFY.
@@ -65,6 +89,8 @@ export interface WordBreakRange {
   end: number;
   value: WordBreakProperty;
 }
+
+export const extendedPictographic = ${extendedPictographicRegExp};
 
 export const WORD_BREAK_PROPERTY: WordBreakRange[] = [
 ${
@@ -134,4 +160,18 @@ function parseCodepoint(hexString) {
   }
 
   return number;
+}
+
+function toUnicodeEscape(codepoint) {
+  let isBMP = codepoint <= 0xFFFF;
+  let simpleConversion = codepoint.toString(16).toUpperCase();
+
+  let padding = (isBMP ? 4 : 6) - simpleConversion.length;
+  let digits = '0'.repeat(padding) + simpleConversion;
+
+  if (isBMP) {
+    return '\\u' + digits;
+  } else {
+    return `\\u{${digits}}`;
+  }
 }
