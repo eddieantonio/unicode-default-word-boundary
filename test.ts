@@ -1,8 +1,9 @@
-import test from 'ava';
+import test, { ExecutionContext } from 'ava';
 
 import {splitWords} from './';
 
-// I'm avoiding placing hebrew and latin punctionation, because
+// I'm avoiding placing Hebrew and Latin in the same string literal, because
+// VSCode gets VERY confused with bidirectional text.
 const ALEPH = 'א';
 
 test('WB1 & WB2', wordBoundaryRule, '', []);
@@ -28,6 +29,6 @@ test.skip('WB15', wordBoundaryRule, '🇨🇦🇰🇭',  ['🇨🇦🇰🇭']);
 test('WB99', wordBoundaryRule, '米饼',  ['米', '饼']);
 
 /** Macro to test a word boundary rule. */
-function wordBoundaryRule(t, input: string, expected: string[]) {
+function wordBoundaryRule(t: ExecutionContext, input: string, expected: string[]) {
   t.deepEqual(splitWords(input), expected);
 }
