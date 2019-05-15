@@ -120,32 +120,48 @@ function* findBoundaries(text: string): Iterable<number> {
 
   // TODO: Rewrite this to handle WB4 properly...
 
+  // Maintain a sliding window of four SCALAR VALUES.
+  //
+  //  - Scalar values? JavaScript strings are not actually a string of 
+  //    Unicode code points; some characters are made up of TWO JavaScript indices.
+  //    e.g., "💩".length === 2, "💩"[0] === '\uXXXX',   "💩"[1] === '\uXXXX'
+  //    Since we don't want to be in the "middle" of a character, make sure
+  //    we're always advancing by scalar values, and not indices.
+  //  - Four values? Some rules look at what's left of left, and some look at
+  //    what's right of right. So keep track of this!
+
+  //let lookbehind_pos = -2; // lookbehind, one scalar value left of left
+  //let left_pos = -1;
+  let rightPos;
+  let lookaheadPos = 0; // lookahead, one scalar value right of right.
+
+  // Before the start of the string is also the start of the string. This doesn't matter much!
+  //let lookbehind: WordBreakProperty = 'sot';
   let left: WordBreakProperty = 'sot';
   let right: WordBreakProperty;
-  let lookahead: WordBreakProperty;
-  let lookbehind: WordBreakProperty;
+  //let lookahead: WordBreakProperty;
 
-  // WB1: Break at the start of text
-  yield 0;
-  
-  let codepoints = Array.from(text);
-  let len = codepoints.length;
+  do {
+    // Advance positions.
+    rightPos = lookaheadPos;
+    lookaheadPos = positionAfter(lookaheadPos);
+    right = wordbreakPropertyAt(rightPos);
 
-  /// XXX: THERE WILL BE ISSUES WITH NON-BMP CODE POINTS!
+    // Break at the start and end of text, unless the text is empty.
+    // WB1: Break at start of text...
+    if (left === 'sot') {
+      yield rightPos;
+      continue;
+    }
+    // WB2: Break at the end of text...
+    if (right === 'eot') {
+      // This should absolutely be dead-code!
+      console.assert(false, "We are somehow after the end of the string!");
+      yield rightPos;
+      break;
+    }
 
-  // Now, let's find the next break!
-  let pos = -1; // pos is the position of the LEFT character.
-  while (pos < codepoints.length) {
-    // This function will ALWAYS increment `pos`,
-    // hence the while loop will eventually 
-
-    // Advance the position!!
-    pos = skipToNext(pos);
-    lookbehind = left;
-    left = property(codepoints[pos]);
-    right = property(codepoints[skipToNext(pos)]);
-    lookahead = property(codepoints[skipTwice(pos)])
-
+    /*
     // WB3: Do not break within CRLF:
     if (left === 'CR' && right === 'LF')
       continue;
@@ -176,6 +192,8 @@ function* findBoundaries(text: string): Iterable<number> {
     // WB5: Do not break between most letters.
     if (isAHLetter(left) && isAHLetter(right))
       continue;
+
+    lookahead = wordbreakPropertyAt(lookahead_pos);
 
     // Do not break across certain punctuation
     // WB6: (Don't break before appostrophies in contractions)
@@ -238,46 +256,66 @@ function* findBoundaries(text: string): Iterable<number> {
       continue;
 
     // TODO: WB15 and WB16: Do not break between an odd number of regional flag indicators.
+    */
 
     // WB999: Otherwise, break EVERYWHERE (including around ideographs)
-    yield pos + 1;
-  }
+    yield rightPos;
 
-  // Utility functions.
+  } while (rightPos < text.length);
+
+  // WB2: Break at the end of text.
+  console.assert(rightPos === text.length);
+  yield rightPos;
+
+  // Utility functions:
 
   /**
-   * WB4: Returns the next character, skipping Extend and Format characters.
+   * Returns the position of the start of the next scalar value. This jumps
+   * over surrogate pairs.
+   * 
+   * If asked for the character AFTER the end of the string, this always
+   * returns the length of the string.
    */
-  function skipToNext(idx: number): number {
-    // WB4: Skip over Extend and Format Characters.
-    if (idx >= len)
-      return len;
-    
-    do {
-      idx++;
-    } while (
-      codepoints[idx] !== undefined &&
-      isExtendOrFormat(property(codepoints[idx]))
-    );
-
-    return idx;
+  function positionAfter(pos: number): number {
+    if (pos >= text.length) {
+      return text.length;
+    } else if (isStartOfSurrogatePair(text[pos])) {
+      return pos + 2;
+    }
+    return pos + 1;
   }
 
-  function skipTwice(idx: number): number {
-    return skipToNext(skipToNext(idx));
+  /**
+   * Return the value of the Word_Break property at the given string index.
+   * @param pos position in the text.
+   */
+  function wordbreakPropertyAt(pos: number) {
+    if (pos < 0) {
+      return 'sot'; // Always "start of string" before the string starts!
+    } else if (pos >= text.length) {
+      return 'eot'; // Always "end of string" after the string ends!
+    } else if (isStartOfSurrogatePair(text[pos])) {
+      // Surrogate pairs the next TWO items from the string!
+      return property(text[pos] + text[pos + 1]);
+    }
+    return property(text[pos]);
   }
+}
+
+function isStartOfSurrogatePair(character: string) {
+  let code_unit = character.charCodeAt(0);
+  return code_unit >= 0xD800 && code_unit <= 0xDBFF;
 }
 
 /**
  * Return the Word_Break property value for a character.
  * Note that 
- * @param character 
+ * @param character a scalar value
  */
-function property(character: string | undefined): WordBreakProperty {
-  // Assume that undefined means we've gone off the end of the array.
-  if (character === undefined || character.length === 0)
-    return 'eot';
-
+function property(character: string): WordBreakProperty {
+  // This MUST be a scalar value.
+  console.assert(character.length === 1 || character.length === 2);
+  // TODO: remove dependence on character.codepointAt()?
   let codepoint = character.codePointAt(0) as number;
   return searchForProperty(codepoint, 0, WORD_BREAK_PROPERTY.length);
 }
@@ -309,6 +347,7 @@ function searchForProperty(codepoint: number, left: number, right: number): Word
 
 // Word_Break rule macros
 // See: https://unicode.org/reports/tr29/#WB_Rule_Macros
+/*
 function isAHLetter(prop: WordBreakProperty): boolean {
   return prop === 'ALetter' || prop === 'Hebrew_Letter';
 }
@@ -320,6 +359,7 @@ function isMidNumLetQ(prop: WordBreakProperty): boolean {
 function isExtendOrFormat(prop: WordBreakProperty): boolean {
   return prop === 'Extend' || prop === 'Format';
 }
+*/
 
 /**
  * Returns true when the chunk does not solely consiste of whitespace.
