@@ -137,15 +137,16 @@ function* findBoundaries(text: string): Iterable<number> {
 
   // Before the start of the string is also the start of the string. This doesn't matter much!
   //let lookbehind: WordBreakProperty = 'sot';
-  let left: WordBreakProperty = 'sot';
-  let right: WordBreakProperty;
+  let left: WordBreakProperty;
+  let right: WordBreakProperty = 'sot';
   //let lookahead: WordBreakProperty;
 
   do {
     // Advance positions.
     rightPos = lookaheadPos;
     lookaheadPos = positionAfter(lookaheadPos);
-    right = wordbreakPropertyAt(rightPos);
+    // Advance properties.
+    [left, right] = [right, wordbreakPropertyAt(rightPos)];
 
     // Break at the start and end of text, unless the text is empty.
     // WB1: Break at start of text...
@@ -155,16 +156,15 @@ function* findBoundaries(text: string): Iterable<number> {
     }
     // WB2: Break at the end of text...
     if (right === 'eot') {
-      // This should absolutely be dead-code!
-      console.assert(false, "We are somehow after the end of the string!");
       yield rightPos;
       break;
     }
 
-    /*
     // WB3: Do not break within CRLF:
     if (left === 'CR' && right === 'LF')
       continue;
+
+    /*
 
     // WB3b: Otherwise, break after...
     if (left === 'Newline' || left == 'CR' || left === 'LF')  {
@@ -263,9 +263,7 @@ function* findBoundaries(text: string): Iterable<number> {
 
   } while (rightPos < text.length);
 
-  // WB2: Break at the end of text.
   console.assert(rightPos === text.length);
-  yield rightPos;
 
   // Utility functions:
 
