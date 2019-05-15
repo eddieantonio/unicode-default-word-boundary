@@ -31,19 +31,74 @@ import {WordBreakProperty, WORD_BREAK_PROPERTY} from '../gen/WordBreakProperty';
  * @param text Any valid USVString.
  */
 export function split(text: string): string[] {
-  let boundaries = Array.from(findBoundaries(text));
-  let chunks = [];
-  for (let i = 0; i < boundaries.length - 1; i++) {
-    let start = boundaries[i];
-    let end = boundaries[i + 1];
-    let chunk = text.substring(start, end);
-    chunks.push(chunk);
-  }
+  let spans = Array.from(findSpans(text));
+  return spans.map(span => span.text).filter(isNonSpace);
+}
 
-  return chunks.filter(isNonSpace);
+/**
+ * A span of text that is guarenteed to be between two word boundaries. There
+ * can be no boundaries bisecting this span -- i.e., this span is indivisible,
+ * as far as word boundaries are concerned.
+ * 
+ * If you're familiar with the concept of *basic block* from compiler
+ * construction and static program analysis, this is a similar concept.
+ */
+export interface BasicSpan {
+  // invariant: start < end
+  readonly start: number;
+  // invariant: end > start
+  readonly end: number;
+  // invariant: length > 0
+  // invariant: length === end - start
+  readonly length: number;
+  // invariant: text.length === length
+  // invariant: each character is a BMP UTF-16 code unit, or is a high surrogate
+  // UTF-16 code unit followed by a low surrogate code unit.
+  readonly text: string;
 }
 
 // Internal functions
+
+function* findSpans(text: string): Iterable<BasicSpan> {
+  // TODO: don't throw the boundaries into an array.
+  let boundaries = Array.from(findBoundaries(text));
+  
+  if (boundaries.length == 0) {
+    return;
+  }
+
+  // All non-empty strings have at least TWO boundaries at the start and end of
+  // the string.
+  console.assert(boundaries.length >= 2);
+  
+  for (let i = 0; i < boundaries.length - 1; i++) {
+    let start = boundaries[i];
+    let end = boundaries[i + 1];
+    yield new LazySpan(text, start, end);
+  }
+}
+  
+/**
+ * A span that does not cut out the substring until it absolutely has to!
+ */
+class LazySpan implements BasicSpan {
+  private _source: string;
+  readonly start: number;
+  readonly end: number;
+  constructor(source: string, start: number, end: number) {
+    this._source = source;
+    this.start = start;
+    this.end = end;
+  }
+
+  get text(): string {
+    return this._source.substring(this.start, this.end);
+  }
+
+  get length(): number {
+    return this.end - this.start;
+  }
+}
 
 /**
  * Return an array of string indicies where a word break should occur. That is,
