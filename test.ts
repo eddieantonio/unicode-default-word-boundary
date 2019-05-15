@@ -1,6 +1,6 @@
 import test, { ExecutionContext } from 'ava';
 
-import {splitWords} from './';
+import {splitWords} from './src';
 
 // I'm avoiding placing Hebrew and Latin in the same string literal, because
 // VSCode gets VERY confused with bidirectional text.
@@ -13,17 +13,17 @@ test('WB3b', wordBoundaryRule, 'a\n', ['a']);
 // TODO:  test for WB3c
 test('WB3d', wordBoundaryRule, 'a \u2009 b', ['a', 'b'])
 test('WB5', wordBoundaryRule, 'aא', ['aא'])
-test('WB6 && WB7', wordBoundaryRule, "ain't", ["ain't"])
+test('WB6 & WB7', wordBoundaryRule, "ain't", ["ain't"])
 test('WB7', wordBoundaryRule, "ain't", ["ain't"])
 test('WB7a', wordBoundaryRule, `${ALEPH}'`, [`${ALEPH}'`]);
-test('WB7b && WB7c', wordBoundaryRule, `${ALEPH}"${ALEPH}`, [`${ALEPH}"${ALEPH}`]);
+test('WB7b & WB7c', wordBoundaryRule, `${ALEPH}"${ALEPH}`, [`${ALEPH}"${ALEPH}`]);
 test('WB8', wordBoundaryRule, '42', ['42']);
 test('WB9', wordBoundaryRule, '3a',  ['3a']);
 test('WB10', wordBoundaryRule, 'A3',  ['A3']);
 test('WB11', wordBoundaryRule, '3.2',  ['3.2']);
 test('WB12', wordBoundaryRule, '3,456.789',  ['3,456.789']);
 test('WB13', wordBoundaryRule, 'エラー',  ['エラー']);
-test('WB13a && WB13b', wordBoundaryRule, 'ᐁ ᓂᐸᐟ',  ['ᐁ ᓂᐸᐟ']);
+test('WB13a & WB13b', wordBoundaryRule, 'ᐁ ᓂᐸᐟ',  ['ᐁ ᓂᐸᐟ']);
 // TODO: this one is tough because there can be an aribrary amount of RI indicators.
 test.skip('WB15', wordBoundaryRule, '🇨🇦🇰🇭',  ['🇨🇦🇰🇭']);
 test('WB99', wordBoundaryRule, '米饼',  ['米', '饼']);

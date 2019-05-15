@@ -22,7 +22,7 @@
 
 // See: https://unicode.org/reports/tr29/#Default_Word_Boundaries
 
-import {WordBreakProperty, WORD_BREAK_PROPERTY} from './gen/WordBreakProperty';
+import {WordBreakProperty, WORD_BREAK_PROPERTY} from '../gen/WordBreakProperty';
 
 export function splitWords(text: string): string[] {
   let boundaries = findBoundaries(text);
