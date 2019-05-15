@@ -40,7 +40,7 @@ export function split(text: string): string[] {
     chunks.push(chunk);
   }
 
-  return chunks.filter(isWord);
+  return chunks.filter(isNonSpace);
 }
 
 // Internal functions
@@ -269,8 +269,13 @@ function isExtendOrFormat(prop: WordBreakProperty): boolean {
   return prop === 'Extend' || prop === 'Format';
 }
 
-function isWord(word: string): boolean {
-  return Array.from(word).map(property).some(wb => (
-    isAHLetter(wb) || wb === 'Numeric' || wb === 'Katakana' || wb === 'Other'
+/**
+ * Returns true when the chunk does not solely consiste of whitespace.
+ * 
+ * @param chunk a chunk of text. Starts and ends at word boundaries.
+ */
+function isNonSpace(chunk: string): boolean {
+  return !Array.from(chunk).map(property).every(wb => (
+    wb === 'CR' || wb === 'LF' || wb === 'Newline' || wb === 'WSegSpace'
   ));
 }

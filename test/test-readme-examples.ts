@@ -23,7 +23,7 @@ test(splitExample, `В чащах юга жил бы цитрус? Да, но ф
 
 // TODO: Hebrew example... I don't want to insert RTL text here...
 
-// Plains cree example
+// Plains Cree example
 test(splitExample, `ᑕᐻ ᒥᔪ ᑭᓯᑲᐤ ᐊᓄᐦᐨ᙮`, [
   'ᑕᐻ', 'ᒥᔪ ᑭᓯᑲᐤ', 'ᐊᓄᐦᐨ', '᙮'
 ]);
