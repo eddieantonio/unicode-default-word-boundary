@@ -1,6 +1,6 @@
 import test, { ExecutionContext } from 'ava';
 
-import {splitWords} from '../src';
+import {split} from '../src';
 
 // I'm avoiding placing Hebrew and Latin in the same string literal, because
 // VSCode gets VERY confused with bidirectional text.
@@ -30,5 +30,5 @@ test('WB99', wordBoundaryRule, '米饼',  ['米', '饼']);
 
 /** Macro to test a word boundary rule. */
 function wordBoundaryRule(t: ExecutionContext, input: string, expected: string[]) {
-  t.deepEqual(splitWords(input), expected);
+  t.deepEqual(split(input), expected);
 }

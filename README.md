@@ -16,23 +16,23 @@ Use this to split words in text!
 Usage
 -----
 
-Import the module and use the `splitWords()` method:
+Import the module and use the `split()` method:
 
 ```js
-const splitWords = require('unicode-default-word-boundary').splitWords;
+const split = require('unicode-default-word-boundary').split;
 
-console.log(splitWords(`The quick (“brown”) fox can’t jump 32.3 feet, right?`));
+console.log(split(`The quick (“brown”) fox can’t jump 32.3 feet, right?`));
 ```
 
 Output:
 
-    [ 'The', 'quick', '(', '“', 'brown', '”', ')', 'fox', 'can’t', 'jump', '32.3', 'feet', 'right', '?' ]
+    [ 'The', 'quick', '(', '“', 'brown', '”', ')', 'fox', 'can’t', 'jump', '32.3', 'feet', ',', 'right', '?' ]
 
 
 But that's not all! Try it with non-English text, like Russian:
 
 ```javascript
-splitWords(`В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!`)
+split(`В чащах юга жил бы цитрус? Да, но фальшивый экземпляр!`)
 ```
 
     [ 'В', 'чащах', 'юга', 'жил', 'бы', 'цитрус', '?', 'Да', 'но', 'фальшивый', 'экземпляр', '!' ]
@@ -40,7 +40,7 @@ splitWords(`В чащах юга жил бы цитрус? Да, но фальш
 ...Hebrew:
 
 ```javascript
-splitWords(`איך בלש תפס גמד רוצח עז קטנה?`);
+split(`איך בלש תפס גמד רוצח עז קטנה?`);
 ```
 
     [ 'איך', 'בלש', 'תפס', 'גמד', 'רוצח', 'עז', 'קטנה', '?' ]
@@ -48,7 +48,7 @@ splitWords(`איך בלש תפס גמד רוצח עז קטנה?`);
 ...[nêhiyawêwin][]:
 
 ```javascript
-splitWords(`ᑕᐻ ᒥᔪ ᑭᓯᑲᐤ ᐊᓄᐦᐨ᙮`);
+split(`ᑕᐻ ᒥᔪ ᑭᓯᑲᐤ ᐊᓄᐦᐨ᙮`);
 ```
 
     [ 'ᑕᐻ', 'ᒥᔪ ᑭᓯᑲᐤ', 'ᐊᓄᐦᐨ', '᙮' ]

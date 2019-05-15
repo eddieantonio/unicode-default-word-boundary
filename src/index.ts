@@ -24,7 +24,13 @@
 
 import {WordBreakProperty, WORD_BREAK_PROPERTY} from '../gen/WordBreakProperty';
 
-export function splitWords(text: string): string[] {
+/**
+ * Splits text by its word breaks. Any chunks that are just whitespace will not
+ * be returned.
+ *
+ * @param text Any valid USVString.
+ */
+export function split(text: string): string[] {
   let boundaries = findBoundaries(text);
   let chunks = [];
   for (let i = 0; i < boundaries.length - 1; i++) {
