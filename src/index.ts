@@ -136,17 +136,17 @@ function* findBoundaries(text: string): Iterable<number> {
   let lookaheadPos = 0; // lookahead, one scalar value right of right.
 
   // Before the start of the string is also the start of the string. This doesn't matter much!
-  //let lookbehind: WordBreakProperty = 'sot';
-  let left: WordBreakProperty;
+  let lookbehind: WordBreakProperty;
+  let left: WordBreakProperty = 'sot';
   let right: WordBreakProperty = 'sot';
-  //let lookahead: WordBreakProperty;
+  let lookahead: WordBreakProperty;
 
   do {
-    // Advance positions.
+    // Shift all positions, one scalar value to the right.
     rightPos = lookaheadPos;
     lookaheadPos = positionAfter(lookaheadPos);
-    // Advance properties.
-    [left, right] = [right, wordbreakPropertyAt(rightPos)];
+    // Shift all properties.
+    [lookbehind, left, right] = [left, right, wordbreakPropertyAt(rightPos)];
 
     // Break at the start and end of text, unless the text is empty.
     // WB1: Break at start of text...
@@ -156,24 +156,23 @@ function* findBoundaries(text: string): Iterable<number> {
     }
     // WB2: Break at the end of text...
     if (right === 'eot') {
+      console.assert(rightPos === text.length);
       yield rightPos;
-      break;
+      break; // we're done!
     }
 
     // WB3: Do not break within CRLF:
     if (left === 'CR' && right === 'LF')
       continue;
 
-    /*
-
     // WB3b: Otherwise, break after...
     if (left === 'Newline' || left == 'CR' || left === 'LF')  {
-      yield pos + 1;
+      yield rightPos;
       continue;
     }
     // WB3a: ...and before newlines
     if (right === 'Newline' || right === 'CR' || right === 'LF') {
-      yield pos + 1;
+      yield rightPos;
       continue;
     }
 
@@ -193,7 +192,7 @@ function* findBoundaries(text: string): Iterable<number> {
     if (isAHLetter(left) && isAHLetter(right))
       continue;
 
-    lookahead = wordbreakPropertyAt(lookahead_pos);
+    lookahead = wordbreakPropertyAt(lookaheadPos);
 
     // Do not break across certain punctuation
     // WB6: (Don't break before appostrophies in contractions)
@@ -204,6 +203,7 @@ function* findBoundaries(text: string): Iterable<number> {
     if (isAHLetter(lookbehind) && isAHLetter(right) &&
         (left === 'MidLetter' || isMidNumLetQ(left)))
       continue;
+    /*
     // WB7a
     if (left === 'Hebrew_Letter' && right === 'Single_Quote')
       continue;
@@ -263,7 +263,6 @@ function* findBoundaries(text: string): Iterable<number> {
 
   } while (rightPos < text.length);
 
-  console.assert(rightPos === text.length);
 
   // Utility functions:
 
@@ -345,7 +344,6 @@ function searchForProperty(codepoint: number, left: number, right: number): Word
 
 // Word_Break rule macros
 // See: https://unicode.org/reports/tr29/#WB_Rule_Macros
-/*
 function isAHLetter(prop: WordBreakProperty): boolean {
   return prop === 'ALetter' || prop === 'Hebrew_Letter';
 }
@@ -354,6 +352,7 @@ function isMidNumLetQ(prop: WordBreakProperty): boolean {
   return prop === 'MidNumLet' || prop === 'Single_Quote';
 }
 
+/*
 function isExtendOrFormat(prop: WordBreakProperty): boolean {
   return prop === 'Extend' || prop === 'Format';
 }
