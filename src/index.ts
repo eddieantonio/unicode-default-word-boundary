@@ -139,14 +139,15 @@ function* findBoundaries(text: string): Iterable<number> {
   let lookbehind: WordBreakProperty;
   let left: WordBreakProperty = 'sot';
   let right: WordBreakProperty = 'sot';
-  let lookahead: WordBreakProperty;
+  let lookahead: WordBreakProperty = wordbreakPropertyAt(0);
 
   do {
     // Shift all positions, one scalar value to the right.
     rightPos = lookaheadPos;
     lookaheadPos = positionAfter(lookaheadPos);
     // Shift all properties.
-    [lookbehind, left, right] = [left, right, wordbreakPropertyAt(rightPos)];
+    [lookbehind, left, right, lookahead] =
+      [left, right, lookahead, wordbreakPropertyAt(lookaheadPos)];
 
     // Break at the start and end of text, unless the text is empty.
     // WB1: Break at start of text...
@@ -191,8 +192,6 @@ function* findBoundaries(text: string): Iterable<number> {
     // WB5: Do not break between most letters.
     if (isAHLetter(left) && isAHLetter(right))
       continue;
-
-    lookahead = wordbreakPropertyAt(lookaheadPos);
 
     // Do not break across certain punctuation
     // WB6: (Don't break before appostrophies in contractions)
