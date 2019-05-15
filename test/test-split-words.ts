@@ -1,6 +1,6 @@
 import test, { ExecutionContext } from 'ava';
 
-import {splitWords} from './src';
+import {splitWords} from '../src';
 
 // I'm avoiding placing Hebrew and Latin in the same string literal, because
 // VSCode gets VERY confused with bidirectional text.
