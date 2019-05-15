@@ -145,7 +145,7 @@ function* findBoundaries(text: string): Iterable<number> {
     // Shift all positions, one scalar value to the right.
     rightPos = lookaheadPos;
     lookaheadPos = positionAfter(lookaheadPos);
-    // Shift all properties.
+    // Shift all properties, one scalar value to the right.
     [lookbehind, left, right, lookahead] =
       [left, right, lookahead, wordbreakPropertyAt(lookaheadPos)];
 
@@ -202,7 +202,6 @@ function* findBoundaries(text: string): Iterable<number> {
     if (isAHLetter(lookbehind) && isAHLetter(right) &&
         (left === 'MidLetter' || isMidNumLetQ(left)))
       continue;
-    /*
     // WB7a
     if (left === 'Hebrew_Letter' && right === 'Single_Quote')
       continue;
@@ -210,7 +209,7 @@ function* findBoundaries(text: string): Iterable<number> {
     if (left === 'Hebrew_Letter' && right === 'Double_Quote' &&
         lookahead === 'Hebrew_Letter')
       continue;
-    // WB7b
+    // WB7c
     if (lookbehind === 'Hebrew_Letter' && left === 'Double_Quote' &&
         right === 'Hebrew_Letter')
       continue;
@@ -255,7 +254,6 @@ function* findBoundaries(text: string): Iterable<number> {
       continue;
 
     // TODO: WB15 and WB16: Do not break between an odd number of regional flag indicators.
-    */
 
     // WB999: Otherwise, break EVERYWHERE (including around ideographs)
     yield rightPos;
