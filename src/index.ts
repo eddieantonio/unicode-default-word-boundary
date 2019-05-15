@@ -141,7 +141,7 @@ function* findBoundaries(text: string): Iterable<number> {
   let right: WordBreakProperty = 'sot';
   let lookahead: WordBreakProperty = wordbreakPropertyAt(0);
 
-  do {
+  while (/* N.B., breaks at rule WB2. */ true) {
     // Shift all positions, one scalar value to the right.
     rightPos = lookaheadPos;
     lookaheadPos = positionAfter(lookaheadPos);
@@ -159,7 +159,7 @@ function* findBoundaries(text: string): Iterable<number> {
     if (right === 'eot') {
       console.assert(rightPos === text.length);
       yield rightPos;
-      break; // we're done!
+      break; // Reached the end of the string. We're done!
     }
 
     // WB3: Do not break within CRLF:
@@ -257,9 +257,8 @@ function* findBoundaries(text: string): Iterable<number> {
 
     // WB999: Otherwise, break EVERYWHERE (including around ideographs)
     yield rightPos;
-
-  } while (rightPos < text.length);
-
+  }
+  // <end of generator>
 
   // Utility functions:
 
