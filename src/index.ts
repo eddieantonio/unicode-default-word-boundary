@@ -217,10 +217,10 @@ function findBoundaries(text: string): number[] {
  */
 function property(character: string | undefined): WordBreakProperty {
   // Assume that undefined means we've gone off the end of the array.
-  if (character === undefined)
+  if (character === undefined || character.length === 0)
     return 'eot';
 
-  let codepoint = character.codePointAt(0);
+  let codepoint = character.codePointAt(0) as number;
   return searchForProperty(codepoint, 0, WORD_BREAK_PROPERTY.length);
 }
 
