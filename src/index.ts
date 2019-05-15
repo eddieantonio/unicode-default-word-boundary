@@ -31,7 +31,7 @@ import {WordBreakProperty, WORD_BREAK_PROPERTY} from '../gen/WordBreakProperty';
  * @param text Any valid USVString.
  */
 export function split(text: string): string[] {
-  let boundaries = findBoundaries(text);
+  let boundaries = Array.from(findBoundaries(text));
   let chunks = [];
   for (let i = 0; i < boundaries.length - 1; i++) {
     let start = boundaries[i];
@@ -49,10 +49,11 @@ export function split(text: string): string[] {
  * Return an array of string indicies where a word break should occur. That is,
  * there should be a break BEFORE each index returned.
  */
-function findBoundaries(text: string): number[] {
+function* findBoundaries(text: string): Iterable<number> {
   // WB1 and WB2: no boundaries if given an empty string.
   if (text.length === 0) {
-    return [];
+    // There are no boundaries in an empty string.
+    return;
   }
 
   // TODO: rewrite this code where property(char[pos]) == property(right)
@@ -70,22 +71,19 @@ function findBoundaries(text: string): number[] {
   let lookbehind: WordBreakProperty;
 
   // WB1: Break at the start of text
-  let boundaries = [0];
+  yield 0;
   
   let codepoints = Array.from(text);
   let len = codepoints.length;
+
+  /// XXX: THERE WILL BE ISSUES WITH NON-BMP CODE POINTS!
 
   // Now, let's find the next break!
   let pos = -1; // pos is the position of the LEFT character.
   while (pos < codepoints.length) {
     // This function will ALWAYS increment `pos`,
     // hence the while loop will eventually 
-    determineNextBreak();
-  }
 
-  /// XXX: THERE WILL BE ISSUES WITH NON-BMP CODE POINTS!
-
-  function determineNextBreak() {
     // Advance the position!!
     pos = skipToNext(pos);
     lookbehind = left;
@@ -95,21 +93,25 @@ function findBoundaries(text: string): number[] {
 
     // WB3: Do not break within CRLF:
     if (left === 'CR' && right === 'LF')
-      return;
+      continue;
 
     // WB3b: Otherwise, break after...
-    if (left === 'Newline' || left == 'CR' || left === 'LF') 
-      return breakHere();
+    if (left === 'Newline' || left == 'CR' || left === 'LF')  {
+      yield pos + 1;
+      continue;
+    }
     // WB3a: ...and before newlines
-    if (right === 'Newline' || right === 'CR' || right === 'LF') 
-      return breakHere();
-    
+    if (right === 'Newline' || right === 'CR' || right === 'LF') {
+      yield pos + 1;
+      continue;
+    }
+
     // TODO: WB3c: ZWJ × \p{Extended_Pictographic}
     // TODO: test for this.
     
     // WB3d: Keep horizontal whitespace together
     if (left === 'WSegSpace' && right == 'WSegSpace')
-      return;
+      continue;
 
     // WB4: Ignore format and extend characters, except after sot, CR, LF, and Newline.
     // See: Section 6.2: https://unicode.org/reports/tr29/#Grapheme_Cluster_and_Format_Rules
@@ -118,54 +120,54 @@ function findBoundaries(text: string): number[] {
 
     // WB5: Do not break between most letters.
     if (isAHLetter(left) && isAHLetter(right))
-      return;
+      continue;
 
     // Do not break across certain punctuation
     // WB6: (Don't break before appostrophies in contractions)
     if (isAHLetter(left) && isAHLetter(lookahead) &&
         (right === 'MidLetter' || isMidNumLetQ(right)))
-      return;
+      continue;
     // WB7: (Don't break after appostrophies in contractions)
     if (isAHLetter(lookbehind) && isAHLetter(right) &&
         (left === 'MidLetter' || isMidNumLetQ(left)))
-      return;
+      continue;
     // WB7a
     if (left === 'Hebrew_Letter' && right === 'Single_Quote')
-      return;
+      continue;
     // WB7b
     if (left === 'Hebrew_Letter' && right === 'Double_Quote' &&
         lookahead === 'Hebrew_Letter')
-      return;
+      continue;
     // WB7b
     if (lookbehind === 'Hebrew_Letter' && left === 'Double_Quote' &&
         right === 'Hebrew_Letter')
-      return;
+      continue;
     
     // Do not break within sequences of digits, or digits adjacent to letters.
     // e.g., "3a" or "A3"
     // WB8
     if (left === 'Numeric' && right === 'Numeric')
-      return;
+      continue;
     // WB9
     if (isAHLetter(left) && right === 'Numeric')
-      return;
+      continue;
     // WB10
     if (left === 'Numeric' && isAHLetter(right))
-      return;
+      continue;
 
     // Do not break within sequences, such as 3.2, 3,456.789
     // WB11
     if (lookbehind === 'Numeric' && right === 'Numeric' &&
         (left === 'MidNum' || isMidNumLetQ(left)))
-      return;
+      continue;
     // WB12
     if (left === 'Numeric' && lookahead === 'Numeric' &&
         (right === 'MidNum' || isMidNumLetQ(right)))
-      return;
+      continue;
 
     // WB13: Do not break between Katakana
     if (left === 'Katakana' && right === 'Katakana')
-      return;
+      continue;
 
     // Do not break from extenders (e.g., U+202F NARROW NO-BREAK SPACE)
     // WB13a
@@ -173,25 +175,20 @@ function findBoundaries(text: string): number[] {
          left === 'Numeric' ||
          left === 'Katakana' ||
          left === 'ExtendNumLet') && right === 'ExtendNumLet')
-      return;
+      continue;
     // WB13b
     if ((isAHLetter(right) || 
          right === 'Numeric' ||
          right === 'Katakana') && left === 'ExtendNumLet')
-      return;
+      continue;
 
     // TODO: WB15 and WB16: Do not break between an odd number of regional flag indicators.
 
     // WB999: Otherwise, break EVERYWHERE (including around ideographs)
-    return breakHere();
+    yield pos + 1;
   }
 
-  return boundaries;
-
-  // Macro to push the current position as a word break position.
-  function breakHere() {
-    boundaries.push(pos + 1);
-  }
+  // Utility functions.
 
   /**
    * WB4: Returns the next character, skipping Extend and Format characters.
