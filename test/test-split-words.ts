@@ -2,17 +2,32 @@ import test, { ExecutionContext } from 'ava';
 
 import {split} from '../src';
 
-// I'm avoiding placing Hebrew and Latin in the same string literal, because
-// VSCode gets VERY confused with bidirectional text.
-const ALEPH = 'א';
+// Special characters that I don't trust text editors to display properly in
+// string literals!
 
+// I'm avoiding placing Hebrew and Latin in the same string literal, because
+// VSCode gets VERY confused with bidirectional text ☹️
+const ALEPH = 'א';
+const ZWJ = '\u200D';
+const VIRAMA = '\u094D';
+const COMBINING_HORN = '\u031B';
+const COMBINING_HOOK_ABOVE = '\u0309';
+const SHY = '\u00AD';
+
+/* See: https://unicode.org/reports/tr29/#Word_Boundary_Rules */
 test('WB1 & WB2', wordBoundaryRule, '', []);
 test('WB3', wordBoundaryRule, 'a\r\nb', ['a', 'b']);
 test('WB3a', wordBoundaryRule, '\na', ['a']);
 test('WB3b', wordBoundaryRule, 'a\n', ['a']);
 // TODO: test for WB3c
 test('WB3d', wordBoundaryRule, 'a \u2009 b', ['a', 'b'])
-// TODO: test for WB4
+test('WB4 [Extend]', wordBoundaryRule,
+  `pho${COMBINING_HORN}${COMBINING_HOOK_ABOVE}`,
+  [`pho${COMBINING_HORN}${COMBINING_HOOK_ABOVE}`]);
+test('WB4 [Format]', wordBoundaryRule,
+  `Ka${SHY}wen${SHY}non:${SHY}nis`,
+  [`Ka${SHY}wen${SHY}non:${SHY}nis`]);
+test('WB4 [ZWJ]', wordBoundaryRule, `क${VIRAMA}${ZWJ}ष`, ['क्‍ष']);
 test('WB5', wordBoundaryRule, 'aא', ['aא'])
 test('WB6 & WB7', wordBoundaryRule, "ain't", ["ain't"])
 test('WB7', wordBoundaryRule, "ain't", ["ain't"])
