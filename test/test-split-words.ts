@@ -35,8 +35,7 @@ test('WB10', wordBoundaryRuleIndivisible, '3a',);
 test('WB11  && WB12', wordBoundaryRule, '3.2 3,456.789',  ['3.2', '3,456.789']);
 test('WB13', wordBoundaryRuleIndivisible, 'エラー',);
 test('WB13a & WB13b', wordBoundaryRuleIndivisible, 'ᐁ ᓂᐸᐟ');
-// TODO: this one is tough because there can be an aribrary amount of RI indicators.
-test.skip('WB15', wordBoundaryRule, '🇨🇦🇰🇭',  ['🇨🇦🇰🇭']);
+test('WB15 & WB16', wordBoundaryRule, '🇨🇦🇰🇭🇽🇽',  ['🇨🇦', '🇰🇭', '🇽🇽']);
 test('WB99', wordBoundaryRule, '米饼',  ['米', '饼']);
 
 /** Macro to test a word boundary rule. */
