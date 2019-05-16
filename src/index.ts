@@ -193,9 +193,8 @@ function* findBoundaries(text: string): Iterable<number> {
       // DO NOT update left and right, however!
       [rightPos, lookaheadPos] = [lookaheadPos, positionAfter(lookaheadPos)];
       [right, lookahead] = [lookahead, wordbreakPropertyAt(lookaheadPos)];
-
-      // TODO: Have to also ignore rules in lookahead!
     }
+
     // In ignoring the characters in the previous loop, we could have fallen of
     // the end of the string, so end the loop prematurely if that happens!
     if (right === 'eot') {
@@ -204,7 +203,13 @@ function* findBoundaries(text: string): Iterable<number> {
       break;
     }
 
-    debugger;
+    // WB4 (continued): Lookahead must ALSO ignore these format, extend, zwj characters!
+    while (lookahead === 'Format' || lookahead === 'Extend' || lookahead === 'ZWJ') {
+      // Continue advancing in the string, as if these characters do not exist.
+      // DO NOT update left and right, however!
+      lookaheadPos =  positionAfter(lookaheadPos);
+      lookahead = wordbreakPropertyAt(lookaheadPos);
+    }
 
     // WB5: Do not break between most letters.
     if (isAHLetter(left) && isAHLetter(right))
