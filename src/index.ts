@@ -47,17 +47,21 @@ export interface BasicSpan {
 }
 
 /**
- * Splits text by its word breaks. Any chunks that are just whitespace will not
- * be returned.
+ * Splits text by its word breaks. Any spans that are composed entirely of
+ * whitespace will not be returned. Returns an array of strings.
  *
- * @param text Any valid USVString.
+ * @param text Any valid USVString with words to split.
  */
 export function split(text: string): string[] {
   let spans = Array.from(findSpans(text));
   return spans.map(span => span.text).filter(isNonSpace);
 }
 
-function* findSpans(text: string): Iterable<BasicSpan> {
+/**
+ * Generator that yields every successive span from the the text.
+ * @param text Any valid USVString to segment.
+ */
+export function* findSpans(text: string): Iterable<BasicSpan> {
   // TODO: don't throw the boundaries into an array.
   let boundaries = Array.from(findBoundaries(text));
   
@@ -68,7 +72,7 @@ function* findSpans(text: string): Iterable<BasicSpan> {
   // All non-empty strings have at least TWO boundaries at the start and end of
   // the string.
   console.assert(boundaries.length >= 2);
-  
+
   for (let i = 0; i < boundaries.length - 1; i++) {
     let start = boundaries[i];
     let end = boundaries[i + 1];
