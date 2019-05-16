@@ -2,24 +2,24 @@ import test, { ExecutionContext } from 'ava';
 
 import {split} from '../src';
 
-// Special characters that I don't trust text editors to display properly in
-// string literals!
-
+///// Special characters that I don't trust text editors to display properly /////
+/////                       in string literals:                              /////
 // I'm avoiding placing Hebrew and Latin in the same string literal, because
 // VSCode gets VERY confused with bidirectional text ☹️
 const ALEPH = 'א';
+const COMBINING_HOOK_ABOVE = '\u0309'; // phở real
+const COMBINING_HORN = '\u031B'; // phở sure
+const SHY = '\u00AD'; // soft-hypen: a word-break *opporunity*, but NOT a word break!
+const VIRAMA = '\u094D'; // halant in Hindi. Makes the inherent vowel silent.
 const ZWJ = '\u200D';
-const VIRAMA = '\u094D';
-const COMBINING_HORN = '\u031B';
-const COMBINING_HOOK_ABOVE = '\u0309';
-const SHY = '\u00AD';
+const EMOJI_PRESENTATION_SELECTOR = '\ufe0f'; // Makes the last thing display as emoji.
 
 /* See: https://unicode.org/reports/tr29/#Word_Boundary_Rules */
 test('WB1 & WB2', wordBoundaryRule, '', []);
 test('WB3', wordBoundaryRule, 'a\r\nb', ['a', 'b']);
 test('WB3a', wordBoundaryRule, '\na', ['a']);
 test('WB3b', wordBoundaryRule, 'a\n', ['a']);
-// TODO: test for WB3c
+test('WB3c', wordBoundaryRuleIndivisible, `🧚${''}🏽${ZWJ}♂${EMOJI_PRESENTATION_SELECTOR}`);
 test('WB3d', wordBoundaryRule, 'a \u2009 b', ['a', 'b'])
 test('WB4 [Extend]', wordBoundaryRuleIndivisible, `pho${COMBINING_HORN}${COMBINING_HOOK_ABOVE}`);
 test('WB4 [Format]', wordBoundaryRuleIndivisible, `Ka${SHY}wen${SHY}non:${SHY}nis`);
