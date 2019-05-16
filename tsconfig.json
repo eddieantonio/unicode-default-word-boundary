@@ -7,6 +7,7 @@
     "module": "commonjs",                     /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */
     "declaration": true,                      /* Generates corresponding '.d.ts' file. */
     "sourceMap": true,                        /* Generates corresponding '.map' file. */
+    "outDir": "lib",
 
     "lib": ["es6"],                           /* Assume ONLY ES6 runtime is available; do not assume Node or DOM stuff is available. */
 

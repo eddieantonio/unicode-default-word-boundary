@@ -2,7 +2,7 @@
   "name": "unicode-default-word-boundary",
   "version": "12.0.0-alpha",
   "description": "Implements the Unicode default word boundary specification (UAX #29 §4.1)",
-  "main": "src/index.js",
+  "main": "lib/index.js",
   "scripts": {
     "test": "tsc && ava",
     "build": "./libexec/compile-word-break.js && tsc",
