@@ -24,7 +24,7 @@ test('WB3d', wordBoundaryRule, 'a \u2009 b', ['a', 'b'])
 test('WB4 [Extend]', wordBoundaryRule,
   `pho${COMBINING_HORN}${COMBINING_HOOK_ABOVE}`,
   [`pho${COMBINING_HORN}${COMBINING_HOOK_ABOVE}`]);
-test('WB4 [Format]', wordBoundaryRule,
+test.only('WB4 [Format]', wordBoundaryRule,
   `Ka${SHY}wen${SHY}non:${SHY}nis`,
   [`Ka${SHY}wen${SHY}non:${SHY}nis`]);
 test('WB4 [ZWJ]', wordBoundaryRule, `क${VIRAMA}${ZWJ}ष`, ['क्‍ष']);

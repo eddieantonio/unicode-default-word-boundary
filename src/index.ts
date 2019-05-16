@@ -186,8 +186,25 @@ function* findBoundaries(text: string): Iterable<number> {
 
     // WB4: Ignore format and extend characters, except after sot, CR, LF, and Newline.
     // See: Section 6.2: https://unicode.org/reports/tr29/#Grapheme_Cluster_and_Format_Rules
-    // This also has the effect of: Any × (Format | Extend | ZWJ)
-    // Handled by skipToNext() and skipTwice()
+    // This is to keep grapheme clusters together!
+    // N.B.: The exception has already been handled above!
+    while (right === 'Format' || right === 'Extend' || right === 'ZWJ') {
+      // Continue advancing in the string, as if these characters do not exist.
+      // DO NOT update left and right, however!
+      [rightPos, lookaheadPos] = [lookaheadPos, positionAfter(lookaheadPos)];
+      [right, lookahead] = [lookahead, wordbreakPropertyAt(lookaheadPos)];
+
+      // TODO: Have to also ignore rules in lookahead!
+    }
+    // In ignoring the characters in the previous loop, we could have fallen of
+    // the end of the string, so end the loop prematurely if that happens!
+    if (right === 'eot') {
+      console.assert(rightPos === text.length);
+      yield rightPos;
+      break;
+    }
+
+    debugger;
 
     // WB5: Do not break between most letters.
     if (isAHLetter(left) && isAHLetter(right))
