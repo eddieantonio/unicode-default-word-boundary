@@ -22,7 +22,7 @@
 
 // See: https://unicode.org/reports/tr29/#Default_Word_Boundaries
 
-import {WordBreakProperty, WORD_BREAK_PROPERTY} from '../gen/WordBreakProperty';
+import {WordBreakProperty, WORD_BREAK_PROPERTY, extendedPictographic} from '../gen/WordBreakProperty';
 
 /**
  * Splits text by its word breaks. Any chunks that are just whitespace will not
@@ -148,6 +148,7 @@ function* findBoundaries(text: string): Iterable<number> {
     // Shift all properties, one scalar value to the right.
     [lookbehind, left, right, lookahead] =
       [left, right, lookahead, wordbreakPropertyAt(lookaheadPos)];
+    debugger;
 
     // Break at the start and end of text, unless the text is empty.
     // WB1: Break at start of text...
@@ -177,8 +178,12 @@ function* findBoundaries(text: string): Iterable<number> {
       continue;
     }
 
-    // TODO: WB3c: ZWJ × \p{Extended_Pictographic}
-    // TODO: test for this.
+    // WB3c: Do not break within emoji ZWJ sequences.
+    // XXX: This will never be run on some sequences,
+    // since we jump over ZWJ sequences later :c
+    if (left === 'ZWJ' && isExtendedPictographicAt(rightPos)) {
+      continue;
+    }
     
     // WB3d: Keep horizontal whitespace together
     if (left === 'WSegSpace' && right == 'WSegSpace')
@@ -315,6 +320,11 @@ function* findBoundaries(text: string): Iterable<number> {
     }
     return property(text[pos]);
   }
+
+  function isExtendedPictographicAt(pos: number) {
+    debugger;
+    return extendedPictographic.test(text.substring(pos, pos + 2));
+  }
 }
 
 function isStartOfSurrogatePair(character: string) {
@@ -370,11 +380,6 @@ function isMidNumLetQ(prop: WordBreakProperty): boolean {
   return prop === 'MidNumLet' || prop === 'Single_Quote';
 }
 
-/*
-function isExtendOrFormat(prop: WordBreakProperty): boolean {
-  return prop === 'Extend' || prop === 'Format';
-}
-*/
 
 /**
  * Returns true when the chunk does not solely consiste of whitespace.
