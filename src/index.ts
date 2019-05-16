@@ -141,6 +141,9 @@ function* findBoundaries(text: string): Iterable<number> {
   let right: WordBreakProperty = 'sot';
   let lookahead: WordBreakProperty = wordbreakPropertyAt(0);
 
+  // To make sure we're not splitting emoji flags:
+  let consecutiveRegionalIndicators = 0;
+
   while (/* N.B., breaks at rule WB2. */ true) {
     // Shift all positions, one scalar value to the right.
     rightPos = lookaheadPos;
@@ -280,7 +283,23 @@ function* findBoundaries(text: string): Iterable<number> {
          right === 'Katakana') && left === 'ExtendNumLet')
       continue;
 
-    // TODO: WB15 and WB16: Do not break between an odd number of regional flag indicators.
+    // WB15 & WB16:
+    // Do not break within emoji flag sequences. That is, do not break between
+    // regional indicator (RI) symbols if there is an odd number of RI
+    // characters before the break point.
+    if (right === 'Regional_Indicator') {
+      // Emoji flags are actually composed of two code points, each being a
+      // "regional indicator". These indicators coorespond to Latin letters. Put
+      // two of them together, and they spell out an ISO 3166-1-alpha-2 country
+      // code. Since these always come in pairs, NEVER split the pairs! So, if
+      // we happen to be inside the middle of an odd numbered of
+      // Regional_Indicators, DON'T SPLIT!
+      consecutiveRegionalIndicators += 1;
+      if ((consecutiveRegionalIndicators % 2) == 1)
+        continue;
+    } else {
+      consecutiveRegionalIndicators = 0;
+    }
 
     // WB999: Otherwise, break EVERYWHERE (including around ideographs)
     yield rightPos;
