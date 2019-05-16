@@ -68,7 +68,7 @@ Contributing and Maintaining
 ----------------------------
 
 When maintaining this package, you might notice something strange.
-`index.ts` depends on `./gen/WordBreakProperty.ts`, but this file
+`index.ts` depends on `./src/gen/WordBreakProperty.ts`, but this file
 does not exist! It is a **generated** file, created by reading Unicode
 property data files, [downloaded from Unicode's website][unicodefiles].
 These data files have been compressed and committed to this repository
@@ -80,10 +80,10 @@ in `libexec/`:
     └── emoji-data-12.0.0.txt.gz
 
 **Note that `compile-word-break.js` actually creates
-`./gen/WordBreakProperty.ts`!**
+`./src/gen/WordBreakProperty.ts`!**
 
 
-### How to generate `./gen/WordBreakProperty.ts`
+### How to generate `./src/gen/WordBreakProperty.ts`
 
 When you have _just_ cloned the repository, this file will be generated
 when you run `npm install`:

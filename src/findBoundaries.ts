@@ -30,7 +30,7 @@
  * See: https://unicode.org/reports/tr29/#Default_Word_Boundaries
  */
 
-import { WordBreakProperty, WORD_BREAK_PROPERTY, extendedPictographic } from '../gen/WordBreakProperty';
+import { WordBreakProperty, WORD_BREAK_PROPERTY, extendedPictographic } from './gen/WordBreakProperty';
 
 /**
  * Return an array of string indicies where a word break should occur. That is,

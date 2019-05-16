@@ -9,7 +9,7 @@
  *
  * For internal use only. Please keep away from children.
  *
- * The generated file is saved to ../gen/WordBreakProperty.ts
+ * The generated file is saved to ../src/gen/WordBreakProperty.ts
  */
 const zlib = require('zlib');
 const fs = require('fs');
@@ -23,7 +23,8 @@ const MAX_CODE_POINT = 0x10FFFF;
 
 //////////////////////////////////// Main ////////////////////////////////////
 
-const generatedFilename = path.join(__dirname, '..', 'gen', 'WordBreakProperty.ts');
+const genDirectory = path.join(__dirname, '..', 'src', 'gen');
+const generatedFilename = path.join(genDirectory, 'WordBreakProperty.ts');
 
 // Ensure this package's major version number is in sync with the Unicode
 // major version.
