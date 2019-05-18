@@ -2,7 +2,7 @@ Unicode Default Word Boundary
 =============================
 
 [![Build Status](https://travis-ci.org/eddieantonio/unicode-default-word-boundary.svg?branch=master)](https://travis-ci.org/eddieantonio/unicode-default-word-boundary)
-![npm](https://img.shields.io/npm/v/unicode-default-word-boundary.svg)
+[![npm](https://img.shields.io/npm/v/unicode-default-word-boundary.svg)](https://www.npmjs.com/package/unicode-default-word-boundary)
 
 Implements the [Unicode UAX #29 §4.1 default word boundary
 specification][defaultwb], for finding **word breaks** in **multilingual
