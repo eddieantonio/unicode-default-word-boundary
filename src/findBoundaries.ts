@@ -75,7 +75,7 @@ export function* findBoundaries(text: string): Iterable<number> {
     // Shift all properties, one scalar value to the right.
     [lookbehind, left, right, lookahead] =
       [left, right, lookahead, wordbreakPropertyAt(lookaheadPos)];
-    debugger;
+
     // Break at the start and end of text, unless the text is empty.
     // WB1: Break at start of text...
     if (left === 'sot') {
