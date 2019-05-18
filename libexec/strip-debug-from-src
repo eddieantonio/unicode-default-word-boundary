@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# Runs strip-debug-cli on all JavaScript files in lib/
+# This removes all instances of:
+#
+#   debugger;
+#   console.log();
+#   console.assert();
+#   ...etc.
+#
+# Intended to be run in npm prepack hook.
+
+set -e
+# Ensure that strip-debug is on the path!
+PATH="$PATH:$(npm bin)"
+
+find lib -name '*.js' | while read -r filename; do
+    # Create a back-up, in case things go south.
+    cp "${filename}" "${filename}.bak"
+    strip-debug "${filename}.bak" > "${filename}"
+    # It's safe to remove the backup now.
+    rm "${filename}.bak"
+done
