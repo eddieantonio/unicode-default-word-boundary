@@ -53,7 +53,7 @@ export function* findBoundaries(text: string): Iterable<number> {
   //    JavaScript indices. e.g.,
   //        "💩".length === 2;
   //        "💩"[0] === '\uD83D';
-  //        "💩"[1] === '\uDCA9'.
+  //        "💩"[1] === '\uDCA9';
   //
   //    These characters that are represented by TWO indices are
   //    called "surrogate pairs". Since we don't want to be in the
@@ -122,8 +122,9 @@ export function* findBoundaries(text: string): Iterable<number> {
     // N.B.: The rule about "except after sot, CR, LF, and
     // Newline" already been by WB1, WB2, WB3a, and WB3b above.
     while (right === 'Format' || right === 'Extend' || right === 'ZWJ') {
-      // Continue advancing in the string, as if these characters do not exist.
-      // DO NOT update left and lookbehind however!
+      // Continue advancing in the string, as if these
+      // characters do not exist. DO NOT update left and
+      // lookbehind however!
       [rightPos, lookaheadPos] = [lookaheadPos, positionAfter(lookaheadPos)];
       [right, lookahead] = [lookahead, wordbreakPropertyAt(lookaheadPos)];
     }
@@ -135,10 +136,12 @@ export function* findBoundaries(text: string): Iterable<number> {
       yield rightPos;
       break;
     }
-    // WB4 (continued): Lookahead must ALSO ignore these format, extend, ZWJ characters!
+    // WB4 (continued): Lookahead must ALSO ignore these format,
+    // extend, ZWJ characters!
     while (lookahead === 'Format' || lookahead === 'Extend' || lookahead === 'ZWJ') {
-      // Continue advancing in the string, as if these characters do not exist.
-      // DO NOT update left and right, however!
+      // Continue advancing in the string, as if these
+      // characters do not exist. DO NOT update left and right,
+      // however!
       lookaheadPos = positionAfter(lookaheadPos);
       lookahead = wordbreakPropertyAt(lookaheadPos);
     }
@@ -146,11 +149,11 @@ export function* findBoundaries(text: string): Iterable<number> {
     if (isAHLetter(left) && isAHLetter(right))
       continue;
     // Do not break across certain punctuation
-    // WB6: (Don't break before appostrophies in contractions)
+    // WB6: (Don't break before apostrophes in contractions)
     if (isAHLetter(left) && isAHLetter(lookahead) &&
       (right === 'MidLetter' || isMidNumLetQ(right)))
       continue;
-    // WB7: (Don't break after appostrophies in contractions)
+    // WB7: (Don't break after apostrophes in contractions)
     if (isAHLetter(lookbehind) && isAHLetter(right) &&
       (left === 'MidLetter' || isMidNumLetQ(left)))
       continue;
@@ -207,7 +210,7 @@ export function* findBoundaries(text: string): Iterable<number> {
     // characters before the break point.
     if (right === 'Regional_Indicator') {
       // Emoji flags are actually composed of TWO scalar values, each being a
-      // "regional indicator". These indicators coorespond to Latin letters. Put
+      // "regional indicator". These indicators correspond to Latin letters. Put
       // two of them together, and they spell out an ISO 3166-1-alpha-2 country
       // code. Since these always come in pairs, NEVER split the pairs! So, if
       // we happen to be inside the middle of an odd numbered of
@@ -285,7 +288,7 @@ function isStartOfSurrogatePair(character: string) {
 export function property(character: string): WordBreakProperty {
   // This MUST be a scalar value.
   console.assert(character.length === 1 || character.length === 2);
-  // TODO: remove dependence on character.codepointAt()?
+  // TODO: remove dependence on character.codePointAt()?
   let codePoint = character.codePointAt(0) as number;
   return searchForProperty(codePoint, 0, WORD_BREAK_PROPERTY.length);
 }
