@@ -120,15 +120,12 @@ export function* findBoundaries(text: string): Iterable<number> {
       }
       [left, right, lookahead] =
         [lookahead, wordbreakPropertyAt(rightPos), wordbreakPropertyAt(lookaheadPos)];
-      // N.B. `left` now MUST be ZWJ, setting it up for WB3c proper. 
+      // N.B. `left` now MUST be ZWJ, setting it up for WB3c proper.
     }
 
     // WB3c: Do not break within emoji ZWJ sequences.
-    // XXX: This will never be run on some sequences,
-    // since we jump over ZWJ sequences later :c
     if (left === 'ZWJ' && isExtendedPictographicAt(rightPos))
       continue;
-
 
     // WB3d: Keep horizontal whitespace together
     if (left === 'WSegSpace' && right == 'WSegSpace')
