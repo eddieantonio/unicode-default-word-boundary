@@ -19,7 +19,7 @@ test('WB1 & WB2', wordBoundaryRule, '', []);
 test('WB3', wordBoundaryRule, 'a\r\nb', ['a', 'b']);
 test('WB3a', wordBoundaryRule, '\na', ['a']);
 test('WB3b', wordBoundaryRule, 'a\n', ['a']);
-test.skip('WB3c', wordBoundaryRuleIndivisible, `🧚${''}🏽${ZWJ}♂${EMOJI_PRESENTATION_SELECTOR}`);
+test('WB3c', wordBoundaryRuleIndivisible, `🧚${''}🏽${ZWJ}♂${EMOJI_PRESENTATION_SELECTOR}`);
 test('WB3d', wordBoundaryRule, 'a \u2009 b', ['a', 'b'])
 test('WB4 [Extend]', wordBoundaryRuleIndivisible, `pho${COMBINING_HORN}${COMBINING_HOOK_ABOVE}`);
 test('WB4 [Format]', wordBoundaryRuleIndivisible, `Ka${SHY}wen${SHY}non:${SHY}nis`);

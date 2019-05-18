@@ -107,11 +107,29 @@ export function* findBoundaries(text: string): Iterable<number> {
       yield rightPos;
       continue;
     }
+
+    // HACK: advance by TWO positions to handle tricky emoji
+    // combining sequences, that SHOULD be kept together by
+    // WB3c, but are prematurely split by WB4:
+    if (left === 'Other' &&
+        (right === 'Extend' || right === 'Format') &&
+        lookahead === 'ZWJ') {
+      // To ensure this is not split, advance TWO positions forward.
+      for (let i = 0; i < 2; i++) {
+        [rightPos, lookaheadPos] = [lookaheadPos, positionAfter(lookaheadPos)];
+      }
+      [left, right, lookahead] =
+        [lookahead, wordbreakPropertyAt(rightPos), wordbreakPropertyAt(lookaheadPos)];
+      // N.B. `left` now MUST be ZWJ, setting it up for WB3c proper. 
+    }
+
     // WB3c: Do not break within emoji ZWJ sequences.
     // XXX: This will never be run on some sequences,
     // since we jump over ZWJ sequences later :c
     if (left === 'ZWJ' && isExtendedPictographicAt(rightPos))
       continue;
+
+
     // WB3d: Keep horizontal whitespace together
     if (left === 'WSegSpace' && right == 'WSegSpace')
       continue;
@@ -145,6 +163,7 @@ export function* findBoundaries(text: string): Iterable<number> {
       lookaheadPos = positionAfter(lookaheadPos);
       lookahead = wordbreakPropertyAt(lookaheadPos);
     }
+
     // WB5: Do not break between most letters.
     if (isAHLetter(left) && isAHLetter(right))
       continue;
