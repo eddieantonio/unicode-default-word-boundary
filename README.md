@@ -83,12 +83,12 @@ See above for examples.
 ### `findSpans(text: string): Iterable<BasicSpan>`
 
 `findSpans()` is a generator that yields successive _basic spans_ from
-the text. Basic spans is a chunk of text that is guaranteed to be
+the text. A basic span is a chunk of text that is guaranteed to
 start at a word boundary and end at the next word boundary. In other
 words, basic spans are _indivisible_ in that there are no word
-boundaries contained within.
+boundaries contained within a basic span.
 
-`findSpans()` yields objects with the following properties:
+A basic span has the following properties:
 
 ```typescript
 interface BasicSpan {
@@ -106,7 +106,7 @@ interface BasicSpan {
 Note that unlike, `split()`, `findSpans()` **does** yield spans that
 contain whitespace.
 
-e.g.,
+#### Example
 
 `Array.from(findSpans("Hello, world🌎!"))`
 
@@ -121,9 +121,10 @@ Will yield spans with the following properties:
   { start: 14, end: 15, length: 1, text: '!' } ]
 ```
 
-**N.B.**: the yielded objects may _not_ be plain JavaScript objects.
-They adhere to the `BasicSpan` interface, but what `findSpans()`
-actually yields may differ from simple objects.
+**N.B.**: `findSpans()` may _not_ yield plain JavaScript objects, as
+shown above. The objects that `findSpans()` yield will adhere to the
+`BasicSpan` interface, however what `findSpans()` actually yields may
+differ from simple objects.
 
 
 Contributing and Maintaining
