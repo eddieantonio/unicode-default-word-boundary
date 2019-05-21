@@ -3,14 +3,14 @@ import test, { ExecutionContext } from 'ava';
 import {split} from '../src';
 
 ///// Special characters that I don't trust text editors to display properly /////
-/////                       in string literals:                              /////
+/////                 ~~~   in string literals   ~~~                         /////
 // I'm avoiding placing Hebrew and Latin in the same string literal, because
 // VSCode gets VERY confused with bidirectional text ☹️
 const ALEPH = 'א';
 const COMBINING_HOOK_ABOVE = '\u0309'; // phở real
 const COMBINING_HORN = '\u031B'; // phở sure
-const SHY = '\u00AD'; // soft-hypen: a word-break *opporunity*, but NOT a word break!
-const VIRAMA = '\u094D'; // halant in Hindi. Makes the inherent vowel silent.
+const SHY = '\u00AD'; // soft-hyphen: a word-break *opportunity*, but NOT a word break!
+const VIRAMA = '\u094D'; // Halant in Hindi. Makes the inherent vowel silent.
 const ZWJ = '\u200D';
 const EMOJI_PRESENTATION_SELECTOR = '\ufe0f'; // Makes the last thing display as emoji.
 
@@ -19,7 +19,7 @@ test('WB1 & WB2', wordBoundaryRule, '', []);
 test('WB3', wordBoundaryRule, 'a\r\nb', ['a', 'b']);
 test('WB3a', wordBoundaryRule, '\na', ['a']);
 test('WB3b', wordBoundaryRule, 'a\n', ['a']);
-test.skip('WB3c', wordBoundaryRuleIndivisible, `🧚${''}🏽${ZWJ}♂${EMOJI_PRESENTATION_SELECTOR}`);
+test('WB3c', wordBoundaryRuleIndivisible, `🧚${''}🏽${ZWJ}♂${EMOJI_PRESENTATION_SELECTOR}`);
 test('WB3d', wordBoundaryRule, 'a \u2009 b', ['a', 'b'])
 test('WB4 [Extend]', wordBoundaryRuleIndivisible, `pho${COMBINING_HORN}${COMBINING_HOOK_ABOVE}`);
 test('WB4 [Format]', wordBoundaryRuleIndivisible, `Ka${SHY}wen${SHY}non:${SHY}nis`);
@@ -32,7 +32,7 @@ test('WB7b & WB7c', wordBoundaryRuleIndivisible, `${ALEPH}"${ALEPH}`);
 test('WB8', wordBoundaryRuleIndivisible, '42');
 test('WB9', wordBoundaryRuleIndivisible, 'A3',);
 test('WB10', wordBoundaryRuleIndivisible, '3a',);
-test('WB11  && WB12', wordBoundaryRule, '3.2 3,456.789',  ['3.2', '3,456.789']);
+test('WB11 & WB12', wordBoundaryRule, '3.2 3,456.789',  ['3.2', '3,456.789']);
 test('WB13', wordBoundaryRuleIndivisible, 'エラー',);
 test('WB13a & WB13b', wordBoundaryRuleIndivisible, 'ᐁ ᓂᐸᐟ');
 test('WB15 & WB16', wordBoundaryRule, '🇨🇦🇰🇭🇽🇽',  ['🇨🇦', '🇰🇭', '🇽🇽']);
