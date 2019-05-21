@@ -1,5 +1,5 @@
 import test, { Macro } from 'ava';
-import { split } from '../src';
+import { split, findSpans } from '../src';
 
 // Macros
 const splitExample: Macro<[string, string[]]> = (t, input, output) => {
@@ -27,3 +27,24 @@ test(splitExample, `В чащах юга жил бы цитрус? Да, но ф
 test(splitExample, `ᑕᐻ ᒥᔪ ᑭᓯᑲᐤ ᐊᓄᐦᐨ᙮`, [
   'ᑕᐻ', 'ᒥᔪ ᑭᓯᑲᐤ', 'ᐊᓄᐦᐨ', '᙮'
 ]);
+
+test('findSpan() example', t => {
+  let answer= Array.from(findSpans("Hello, world🌎!"))
+  // Coerce to a plain JavaScript objects.
+    .map(o => {
+      return {
+        start: o.start,
+        end: o.end,
+        length: o.length,
+        text: o.text
+      };
+    });
+  t.deepEqual(answer, [
+    { start: 0, end: 5, length: 5, text: 'Hello' },
+    { start: 5, end: 6, length: 1, text: ',' },
+    { start: 6, end: 7, length: 1, text: ' ' },
+    { start: 7, end: 12, length: 5, text: 'world' },
+    { start: 12, end: 14, length: 2, text: '🌎' },
+    { start: 14, end: 15, length: 1, text: '!' }
+  ]);
+});

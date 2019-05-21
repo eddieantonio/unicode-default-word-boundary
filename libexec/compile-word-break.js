@@ -60,15 +60,21 @@ categories.add('eot');
 let extendedPictographicCodePoints = readZippedCharacterPropertyFile(emojiDataFilename)
   .filter(({property}) => property === 'Extended_Pictographic');
 
-let extendedPictographicRegExp = '/^[';
-for (let {start, end} of extendedPictographicCodePoints) {
-  if (start === end) {
-    extendedPictographicRegExp += toUnicodeEscape(start);
-  } else {
-    extendedPictographicRegExp += toUnicodeEscape(start) + '-' + toUnicodeEscape(end);
-  }
+// Try generating the regular expression both in a way that is
+// backwards-compatbile and one that only works in ES6+.
+let extendedPictographicRegExp;
+let compatibleRegexp = utf16AlternativesStrategy();
+let es6Regexp = unicodeRangeStrategy();
+
+// Choose the shortest regular expression.
+// In my experience, the ES6 regexp is an order of magnitude smaller!
+if (es6Regexp.length < compatibleRegexp.length) {
+  extendedPictographicRegExp = es6Regexp;
+  console.warn(`Using ES6 regexp [${es6Regexp.length} chars]`);
+} else {
+  extendedPictographicRegExp = compatibleRegexp;
+  console.warn(`Using compatibility regexp [${compatibleRegexp.length} chars]`);
 }
-extendedPictographicRegExp += ']/u';
 
 //////////////////////// Creating the generated file /////////////////////////
 
@@ -140,7 +146,6 @@ function readZippedCharacterPropertyFile(filename) {
       let start = parseCodepoint(startText);
       let end = endText !== undefined ? parseCodepoint(endText) : start;
 
-
       return { start, end, property };
     });
 }
@@ -163,9 +168,9 @@ function parseCodepoint(hexString) {
   return number;
 }
 
-function toUnicodeEscape(codepoint) {
-  let isBMP = codepoint <= 0xFFFF;
-  let simpleConversion = codepoint.toString(16).toUpperCase();
+function toUnicodeEscape(codePoint) {
+  let isBMP = codePoint <= 0xFFFF;
+  let simpleConversion = codePoint.toString(16).toUpperCase();
 
   let padding = (isBMP ? 4 : 6) - simpleConversion.length;
   let digits = '0'.repeat(padding) + simpleConversion;
@@ -175,4 +180,47 @@ function toUnicodeEscape(codepoint) {
   } else {
     return `\\u{${digits}}`;
   }
+}
+
+function utf16AlternativesStrategy() {
+  let codePoints = [];
+  for (let {start, end} of extendedPictographicCodePoints) {
+    for (let current = start; current <= end; current ++) {
+      codePoints.push(current);
+    }
+  }
+
+  let alternatives = codePoints.map(codePointToUTF16Escape);
+  return `/^(?:${alternatives.join('|')})/`;
+}
+
+function codePointToUTF16Escape(codePoint) {
+  // Scalar values remain the same
+  if (codePoint <= 0xFFFF) {
+    return toUnicodeEscape(codePoint);
+  }
+
+  const LOWEST_TEN_BITS_MASK = 0x03FF;
+  let astralBits = codePoint - 0x10000;
+
+  let highSurrogate = 0xD800 + (astralBits >>> 10);
+  let lowSurrogate = 0xDC00 + (astralBits & LOWEST_TEN_BITS_MASK);
+
+  console.assert(highSurrogate <= 0xDBFF);
+  console.assert(lowSurrogate <= 0xDFFF);
+  console.assert(String.fromCharCode(highSurrogate) + String.fromCharCode(lowSurrogate) ===
+                 String.fromCodePoint(codePoint));
+  return codePointToUTF16Escape(highSurrogate) + codePointToUTF16Escape(lowSurrogate);
+}
+
+function unicodeRangeStrategy() {
+  let regexp = '';
+  for (let {start, end} of extendedPictographicCodePoints) {
+    if (start === end) {
+      regexp += toUnicodeEscape(start);
+    } else {
+      regexp += toUnicodeEscape(start) + '-' + toUnicodeEscape(end);
+    }
+  }
+  return `/^[${regexp}]/u`;
 }

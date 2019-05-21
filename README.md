@@ -2,22 +2,22 @@ Unicode Default Word Boundary
 =============================
 
 [![Build Status](https://travis-ci.org/eddieantonio/unicode-default-word-boundary.svg?branch=master)](https://travis-ci.org/eddieantonio/unicode-default-word-boundary)
-![npm](https://img.shields.io/npm/v/unicode-default-word-boundary.svg)
+[![npm](https://img.shields.io/npm/v/unicode-default-word-boundary.svg)](https://www.npmjs.com/package/unicode-default-word-boundary)
 
-Implements the [Unicode TR29§4.1 default word boundary
+Implements the [Unicode UAX #29 §4.1 default word boundary
 specification][defaultwb], for finding **word breaks** in **multilingual
 text**.
 
-This is a lot smarter than the `\b` word boundary in JavaScript's
-regular expressions! Note that character classes like `\w`, `\d` [only
-work on ASCII characters][mdnregexp].
+Use this to split words in text! Using UAX #29 is a lot smarter than the
+`\b` word boundary in JavaScript's regular expressions! Note that
+character classes like `\b`, `\w`, `\d` [only work on ASCII
+characters][mdnregexp].
 
-Use this to split words in text!
 
 Usage
 -----
 
-Import the module and use the `split()` method:
+Import the module and use the `split()` function:
 
 ```js
 const split = require('unicode-default-word-boundary').split;
@@ -56,6 +56,8 @@ split(`ᑕᐻ ᒥᔪ ᑭᓯᑲᐤ ᐊᓄᐦᐨ᙮`);
 
 ...and many more!
 
+More advanced use cases will want to use the `findSpans()` function.
+
 
 What doesn't work
 -----------------
@@ -63,6 +65,66 @@ What doesn't work
 Languages that do not have obvious word breaks, such as Chinese,
 Japanese, Thai, Lao, and Khmer. You'll need to use statistical or
 dictionary-based approaches to split words in these languages.
+
+
+API Documentation
+-----------------
+
+There are two exported function: `split()` and `findSpans()`.
+
+### `split(text: string): string[]`
+
+`split()` splits the text at word boundaries, returning an array of all
+"words" from the text that contain characters other than whitespace.
+
+See above for examples.
+
+
+### `findSpans(text: string): Iterable<BasicSpan>`
+
+`findSpans()` is a generator that yields successive _basic spans_ from
+the text. A basic span is a chunk of text that is guaranteed to
+start at a word boundary and end at the next word boundary. In other
+words, basic spans are _indivisible_ in that there are no word
+boundaries contained within a basic span.
+
+A basic span has the following properties:
+
+```typescript
+interface BasicSpan {
+    /** Where the span starts, relative to the input text. */
+    start: number;
+    /** At what index does the **next** span begin. */
+    end: number;
+    /** How many characters are in this span. */
+    length: number;
+    /** The text contained within this span. */
+    text: string;
+}
+```
+
+Note that unlike, `split()`, `findSpans()` **does** yield spans that
+contain whitespace.
+
+#### Example
+
+`Array.from(findSpans("Hello, world🌎!"))`
+
+Will yield spans with the following properties:
+
+```javascript
+[ { start: 0, end: 5, length: 5, text: 'Hello' },
+  { start: 5, end: 6, length: 1, text: ',' },
+  { start: 6, end: 7, length: 1, text: ' ' },
+  { start: 7, end: 12, length: 5, text: 'world' },
+  { start: 12, end: 14, length: 2, text: '🌎' },
+  { start: 14, end: 15, length: 1, text: '!' } ]
+```
+
+**N.B.**: `findSpans()` may _not_ yield plain JavaScript objects, as
+shown above. The objects that `findSpans()` yield will adhere to the
+`BasicSpan` interface, however what `findSpans()` actually yields may
+differ from simple objects.
 
 
 Contributing and Maintaining
