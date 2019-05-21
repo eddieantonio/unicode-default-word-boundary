@@ -61,7 +61,7 @@ export function split(text: string): string[] {
  * Generator that yields every successive span from the the text.
  * @param text Any valid USVString to segment.
  */
-export function* findSpans(text: string): Iterable<BasicSpan> {
+export function* findSpans(text: string): IterableIterator<BasicSpan> {
   // TODO: don't throw the boundaries into an array.
   let boundaries = Array.from(findBoundaries(text));
   
