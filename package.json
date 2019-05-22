@@ -1,6 +1,6 @@
 {
   "name": "unicode-default-word-boundary",
-  "version": "12.0.0",
+  "version": "12.0.1",
   "description": "Implements the Unicode default word boundary specification (UAX #29 §4.1)",
   "main": "lib/index.js",
   "files": [
