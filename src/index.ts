@@ -23,6 +23,7 @@
 // See: https://unicode.org/reports/tr29/#Default_Word_Boundaries
 
 import { findBoundaries, property } from './findBoundaries';
+import { WordBreakProperty } from './gen/WordBreakProperty';
 
 /**
  * A span of text that is guarenteed to be between two word boundaries. There
@@ -109,6 +110,9 @@ class LazySpan implements BasicSpan {
  */
 function isNonSpace(chunk: string): boolean {
   return !Array.from(chunk).map(property).every(wb => (
-    wb === 'CR' || wb === 'LF' || wb === 'Newline' || wb === 'WSegSpace'
+    wb === WordBreakProperty.CR ||
+    wb === WordBreakProperty.LF ||
+    wb === WordBreakProperty.Newline ||
+    wb === WordBreakProperty.WSegSpace
   ));
 }

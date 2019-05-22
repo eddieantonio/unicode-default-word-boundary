@@ -86,9 +86,12 @@ stream.write(`// Automatically generated file. DO NOT MODIFY.
 /**
  * Valid values for a word break property.
  */
-export type WordBreakProperty =
-${
-  Array.from(categories).map(x => `  '${x}'`).join(' |\n')
+export const enum WordBreakProperty {
+${ /* Create enum values for each word break property */
+  Array.from(categories)
+    .map(x => `  ${x}`)
+    .join(',\n')
+}
 };
 
 export const extendedPictographic = ${extendedPictographicRegExp};
@@ -104,8 +107,10 @@ export const enum I {
 
 export const WORD_BREAK_PROPERTY: [number, number, WordBreakProperty][] = [
 ${
-    ranges.map(({start, end, property}) =>(
-    `  [/*start*/ 0x${start.toString(16).toUpperCase()}, /*end*/ 0x${end.toString(16).toUpperCase()}, /*value*/ '${property}'],`
+    ranges.map(({start, end, property}) => (`  [` +
+      `/*start*/ 0x${start.toString(16).toUpperCase()}, ` +
+      `/*end*/ 0x${end.toString(16).toUpperCase()}, ` +
+      `WordBreakProperty.${property}],`
     )).join('\n')
 }
 ];
