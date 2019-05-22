@@ -91,18 +91,21 @@ ${
   Array.from(categories).map(x => `  '${x}'`).join(' |\n')
 };
 
-export interface WordBreakRange {
-  start: number;
-  end: number;
-  value: WordBreakProperty;
-}
-
 export const extendedPictographic = ${extendedPictographicRegExp};
 
-export const WORD_BREAK_PROPERTY: WordBreakRange[] = [
+/**
+ * Constants for indexing values in WORD_BREAK_PROPERTY.
+ */
+export const enum I {
+  Start = 0,
+  End   = 1,
+  Value = 2
+}
+
+export const WORD_BREAK_PROPERTY: [number, number, WordBreakProperty][] = [
 ${
     ranges.map(({start, end, property}) =>(
-    `  {start: 0x${start.toString(16).toUpperCase()}, end: 0x${end.toString(16).toUpperCase()}, value: '${property}'},`
+    `  [/*start*/ 0x${start.toString(16).toUpperCase()}, /*end*/ 0x${end.toString(16).toUpperCase()}, /*value*/ '${property}'],`
     )).join('\n')
 }
 ];

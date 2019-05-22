@@ -30,7 +30,7 @@
  * See: https://unicode.org/reports/tr29/#Default_Word_Boundaries
  */
 
-import { WordBreakProperty, WORD_BREAK_PROPERTY, extendedPictographic } from './gen/WordBreakProperty';
+import { WordBreakProperty, WORD_BREAK_PROPERTY, extendedPictographic, I } from './gen/WordBreakProperty';
 
 /**
  * Yields a series of string indices where a word break should
@@ -308,7 +308,6 @@ export function property(character: string): WordBreakProperty {
   let codepoint = character.codePointAt(0) as number;
   return searchForProperty(codepoint, 0, WORD_BREAK_PROPERTY.length - 1);
 }
-
 /**
  * Binary search for the word break property of a given CODE POINT.
  */
@@ -320,14 +319,14 @@ function searchForProperty(codePoint: number, left: number, right: number): Word
 
   let midpoint = left + ~~((right - left) / 2);
   let candidate = WORD_BREAK_PROPERTY[midpoint];
-  if (codePoint < candidate.start) {
+  if (codePoint < candidate[I.Start]) {
     return searchForProperty(codePoint, left, midpoint - 1);
-  } else if (codePoint > candidate.end) {
+  } else if (codePoint > candidate[I.End]) {
     return searchForProperty(codePoint, midpoint + 1, right);
   } else {
     // We found it!
-    console.assert(candidate.start <= codePoint);
-    console.assert(codePoint <= candidate.end);
-    return candidate.value;
+    console.assert(candidate[I.Start] <= codePoint);
+    console.assert(codePoint <= candidate[I.End]);
+    return candidate[I.Value];
   }
 }
