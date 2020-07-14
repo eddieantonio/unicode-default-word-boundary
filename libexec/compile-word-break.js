@@ -19,7 +19,7 @@ const MAX_CODE_POINT = 0x10FFFF;
 
 // Where to get the data:
 //  - http://www.unicode.org/reports/tr51/#emoji_data
-//  - https://unicode.org/reports/tr41/tr41-24.html#Props0
+//  - https://www.unicode.org/reports/tr41/tr41-26.html#Props0
 
 //////////////////////////////////// Main ////////////////////////////////////
 
@@ -44,6 +44,10 @@ let ranges = readZippedCharacterPropertyFile(wordBoundaryFilename)
   .sort((a, b) => {
     return a.start - b.start;
   });
+
+// Ranges is initially sparse — having gaps between assigned ranges
+// Fill in the gaps:
+ranges = makeDense(ranges);
 
 // The possible Word_Break property assignments.
 // If it's unassigned in the file, it should be 'other'.
@@ -231,4 +235,27 @@ function unicodeRangeStrategy() {
     }
   }
   return `/^[${regexp}]/u`;
+}
+
+function makeDense(ranges) {
+  console.assert(ranges.length > 1);
+
+  let newRanges = [];
+  let nextUnaccountedCodepoint = 0x0000;
+
+  for (let range of ranges) {
+    if (range.start > nextUnaccountedCodepoint) {
+      // Need to create a range BEFORE the next start of ranges
+      newRanges.push({
+        start: nextUnaccountedCodepoint,
+        end: range.start - 1,
+        property: 'Other',
+      });
+    }
+
+    newRanges.push(range);
+    nextUnaccountedCodepoint = range.end + 1;
+  }
+
+  return newRanges;
 }
