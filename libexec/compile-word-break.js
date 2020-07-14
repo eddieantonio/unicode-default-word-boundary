@@ -45,13 +45,12 @@ let ranges = readZippedCharacterPropertyFile(wordBoundaryFilename)
     return a.start - b.start;
   });
 
-// Ranges is initially sparse — having gaps between assigned ranges
-// Fill in the gaps:
+// The list of ranges are initially sparse — having gaps between assigned
+// ranges. Fill in those gaps:
 ranges = makeDense(ranges);
 
 // The possible Word_Break property assignments.
-// If it's unassigned in the file, it should be 'other'.
-let categories = new Set(['Other']);
+let categories = new Set();
 for (let {property} of ranges) {
   categories.add(property);
 }
@@ -240,22 +239,32 @@ function unicodeRangeStrategy() {
 function makeDense(ranges) {
   console.assert(ranges.length > 1);
 
-  let newRanges = [];
+  let denseRanges = [];
   let nextUnaccountedCodepoint = 0x0000;
 
   for (let range of ranges) {
     if (range.start > nextUnaccountedCodepoint) {
       // Need to create a range BEFORE the next start of ranges
-      newRanges.push({
+      denseRanges.push({
         start: nextUnaccountedCodepoint,
         end: range.start - 1,
+        // If it's unassigned in the file, it should be 'Other'.
         property: 'Other',
       });
     }
 
-    newRanges.push(range);
+    denseRanges.push(range);
     nextUnaccountedCodepoint = range.end + 1;
   }
 
-  return newRanges;
+  // Create the last range (till the end)
+  if (nextUnaccountedCodepoint < MAX_CODE_POINT) {
+    denseRanges.push({
+      start: nextUnaccountedCodepoint,
+      end: MAX_CODE_POINT,
+      property: 'Other',
+    })
+  }
+
+  return denseRanges;
 }
