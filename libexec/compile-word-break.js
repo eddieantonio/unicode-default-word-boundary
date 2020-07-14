@@ -48,6 +48,7 @@ let ranges = readZippedCharacterPropertyFile(wordBoundaryFilename)
 // The list of ranges are initially sparse — having gaps between assigned
 // ranges. Fill in those gaps:
 ranges = makeDense(ranges);
+ensureDense(ranges);
 
 // The possible Word_Break property assignments.
 let categories = new Set();
@@ -237,6 +238,48 @@ function unicodeRangeStrategy() {
 }
 
 function makeDense(ranges) {
+  return joinSameAdjacentProperties(fillInGaps(ranges));
+}
+
+function ensureDense(ranges) {
+  let lastEnd = -1;
+  let lastProperty = 'sot';
+  for (let range of ranges) {
+    let {start, end, property} = range
+
+    if (lastEnd + 1 !== start) {
+      throw new Error(`Non-adjacent range: ${JSON.stringify(range)}`);
+    }
+
+    if (lastProperty === property) {
+      throw new Error(`adjacent ranges have same property: ${JSON.stringify(range)}`);
+    }
+
+    lastEnd = end;
+    lastProperty = property;
+  }
+}
+
+
+function joinSameAdjacentProperties(ranges) {
+  console.assert(ranges.length > 1);
+
+  let conjoinedRanges = [];
+  conjoinedRanges.push(ranges.shift());
+
+  for (let range of ranges) {
+    let lastRange = conjoinedRanges[conjoinedRanges.length - 1];
+    if (range.property === lastRange.property) {
+      lastRange.end = range.end;
+    } else {
+      conjoinedRanges.push(range);
+    }
+  }
+
+  return conjoinedRanges;
+}
+
+function fillInGaps(ranges) {
   console.assert(ranges.length > 1);
 
   let denseRanges = [];
