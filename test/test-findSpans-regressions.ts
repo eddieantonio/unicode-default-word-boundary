@@ -5,7 +5,7 @@
 import test from 'ava';
 import { findSpans } from '../src';
 
-test('can find properties beyond the WROD_BREAK_PROPERTY table', t => {
+test('can find properties beyond the WORD_BREAK_PROPERTY table', t => {
   // Tests for bug caused due to off-by-one error when the search went out of
   // bounds for code points that exceed the maximum range of the table.
   let spans = Array.from(findSpans("\u{E01f0}"));
