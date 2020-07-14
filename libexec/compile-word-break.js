@@ -105,15 +105,13 @@ export const extendedPictographic = ${extendedPictographicRegExp};
  */
 export const enum I {
   Start = 0,
-  End   = 1,
-  Value = 2
+  Value = 1
 }
 
-export const WORD_BREAK_PROPERTY: [number, number, WordBreakProperty][] = [
+export const WORD_BREAK_PROPERTY: [number, WordBreakProperty][] = [
 ${
-    ranges.map(({start, end, property}) => (`  [` +
+    ranges.map(({start, property}) => (`  [` +
       `/*start*/ 0x${start.toString(16).toUpperCase()}, ` +
-      `/*end*/ 0x${end.toString(16).toUpperCase()}, ` +
       `WordBreakProperty.${property}],`
     )).join('\n')
 }
