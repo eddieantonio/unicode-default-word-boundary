@@ -161,7 +161,8 @@ If you want to regenerate it afterwards, you can run the build script:
 License
 -------
 
-TypeScript implementation © 2019 Eddie Antonio Santos. MIT Licensed.
+TypeScript implementation © 2019 National Research Council
+Canada. MIT Licensed.
 
 The algorithm comes from [UAX #29: Unicode Text Segmentation, an
 integral part of the Unicode Standard, version 12.0][uax29].

@@ -23,7 +23,7 @@
     "boundary",
     "default"
   ],
-  "author": "Eddie Antonio Santos",
+  "author": "Eddie Antonio Santos <Eddie.Santos@nrc-cnrc.gc.ca>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/eddieantonio/unicode-default-word-boundary/issues"
