@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "test": "tsc && ava",
-    "build": "./libexec/compile-word-break.js && tsc",
+    "build": "node ./libexec/compile-word-break.js && tsc",
     "prepare": "npm run build",
     "prepack": "./libexec/strip-debug-from-src"
   },
@@ -30,18 +30,14 @@
   },
   "homepage": "https://github.com/eddieantonio/unicode-default-word-boundary#readme",
   "devDependencies": {
-    "ava": "^1.4.1",
+    "ava": "^3.4.1",
     "ava-fast-check": "^1.1.1",
     "fast-check": "^1.15.0",
     "strip-debug-cli": "^2.0.0",
-    "ts-node": "^8.1.0",
-    "typescript": "^3.4.5"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
   },
   "ava": {
-    "sources": [
-      "**/*.ts"
-    ],
-    "compileEnhancements": false,
     "extensions": [
       "ts"
     ],
