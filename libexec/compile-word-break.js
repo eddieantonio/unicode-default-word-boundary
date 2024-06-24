@@ -80,6 +80,13 @@ if (es6Regexp.length < compatibleRegexp.length) {
   console.warn(`Using compatibility regexp [${compatibleRegexp.length} chars]`);
 }
 
+const arrayRange = (start, stop) =>
+  Array.from(
+    { length: (stop - start) },
+    (_, index) => start + index
+  );
+
+
 //////////////////////// Creating the generated file /////////////////////////
 
 // Save the output in the gen/ directory.
@@ -90,32 +97,26 @@ stream.write(`// Automatically generated file. DO NOT MODIFY.
 /**
  * Valid values for a word break property.
  */
-export const enum WordBreakProperty {
+const enum Wb {
 ${ /* Create enum values for each word break property */
   Array.from(categories)
     .map(x => `  ${x}`)
     .join(',\n')
-}
+  }
 };
 
-export const extendedPictographic = ${extendedPictographicRegExp};
+const extendedPictographic = ${extendedPictographicRegExp};
 
-/**
- * Constants for indexing values in WORD_BREAK_PROPERTY.
- */
-export const enum I {
-  Start = 0,
-  Value = 1
-}
+const W_B: (Wb|undefined)[] = [];
 
-export const WORD_BREAK_PROPERTY: [number, WordBreakProperty][] = [
-${
-    ranges.map(({start, property}) => (`  [` +
-      `/*start*/ 0x${start.toString(16).toUpperCase()}, ` +
-      `WordBreakProperty.${property}],`
-    )).join('\n')
-}
-];
+${ranges.map(({ start, end, property }) => {
+    if (property === 'Other') return `// ${start}..${end} is W_B.Other`;
+    return arrayRange(start, end + 1).map(index => (`W_B[${index}]=` +
+      `Wb.${property};`)).join('\n')
+  }).join('\n')
+  }
+
+export {W_B as WORD_BREAK_PROPERTY, extendedPictographic, Wb as WordBreakProperty};
 `);
 
 /**
@@ -219,7 +220,7 @@ function codePointToUTF16Escape(codePoint) {
   console.assert(highSurrogate <= 0xDBFF);
   console.assert(lowSurrogate <= 0xDFFF);
   console.assert(String.fromCharCode(highSurrogate) + String.fromCharCode(lowSurrogate) ===
-                 String.fromCodePoint(codePoint));
+    String.fromCodePoint(codePoint));
   return codePointToUTF16Escape(highSurrogate) + codePointToUTF16Escape(lowSurrogate);
 }
 

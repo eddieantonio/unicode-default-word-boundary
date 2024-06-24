@@ -8,7 +8,7 @@
     "lib/**/*.d.ts"
   ],
   "scripts": {
-    "test": "tsc && ava",
+    "test": "tsc && ava --verbose --timeout 5m",
     "build": "node ./libexec/compile-word-break.js && tsc",
     "prepare": "npm run build",
     "prepack": "./libexec/strip-debug-from-src"

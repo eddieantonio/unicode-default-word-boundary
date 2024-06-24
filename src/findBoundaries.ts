@@ -30,7 +30,7 @@
  * See: https://unicode.org/reports/tr29/#Default_Word_Boundaries
  */
 
-import { WordBreakProperty, WORD_BREAK_PROPERTY, extendedPictographic, I } from './gen/WordBreakProperty';
+import { WordBreakProperty, WORD_BREAK_PROPERTY, extendedPictographic } from './gen/WordBreakProperty';
 
 /**
  * Yields a series of string indices where a word break should
@@ -317,33 +317,12 @@ export function property(character: string): WordBreakProperty {
   console.assert(character.length === 1 || character.length === 2);
   // TODO: remove dependence on character.codepointAt()?
   let codepoint = character.codePointAt(0) as number;
-  return searchForProperty(codepoint, 0, WORD_BREAK_PROPERTY.length - 1);
+  return searchForProperty(codepoint);
 }
 
 /**
  * Binary search for the word break property of a given CODE POINT.
  */
-function searchForProperty(codePoint: number, left: number, right: number): WordBreakProperty {
-  // All items that are not found in the array are assigned the 'Other' property.
-  if (right < left) {
-    return WordBreakProperty.Other;
-  }
-
-  let midpoint = left + ~~((right - left) / 2);
-  let candidate = WORD_BREAK_PROPERTY[midpoint];
-
-  let nextRange = WORD_BREAK_PROPERTY[midpoint + 1];
-  let startOfNextRange = nextRange ? nextRange[I.Start] : Infinity;
-
-  if (codePoint < candidate[I.Start]) {
-    return searchForProperty(codePoint, left, midpoint - 1);
-  } else if (codePoint >= startOfNextRange) {
-    return searchForProperty(codePoint, midpoint + 1, right);
-  }
-
-  // We found it!
-  console.assert(candidate[I.Start] <= codePoint);
-  console.assert(codePoint < startOfNextRange);
-
-  return candidate[I.Value];
+function searchForProperty(codePoint: number): WordBreakProperty {
+  return WORD_BREAK_PROPERTY[codePoint] || WordBreakProperty.Other;
 }
