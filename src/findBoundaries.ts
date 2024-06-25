@@ -39,7 +39,7 @@ import { WordBreakProperty, WORD_BREAK_PROPERTY, extendedPictographic } from './
  *
  * @param text Text to find word boundaries in.
  */
-export function* findBoundaries(text: string): Iterable<number> {
+export function* findBoundaries(text: string): Generator<number, undefined, undefined> {
   // WB1 and WB2: no boundaries if given an empty string.
   if (text.length === 0) {
     // There are no boundaries in an empty string!

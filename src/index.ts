@@ -54,18 +54,14 @@ export interface BasicSpan {
  * @param text Any valid USVString with words to split.
  */
 export function split(text: string): string[] {
-  let boundaries = Array.from(findBoundaries(text));
   const spans: string[] = [];
   
-  if (boundaries.length == 0) return [];
-  // All non-empty strings have at least TWO boundaries at the start and end of
-  // the string.
-  console.assert(boundaries.length >= 2);
-
-  for (let i = 0; i < boundaries.length - 1; i++) {
-    let start = boundaries[i];
-    let end = boundaries[i + 1];
-    let span = text.substring(start, end);
+  const boundaries = findBoundaries(text)
+  let prev = boundaries.next().value;
+  if(prev === undefined) return [];
+  for (const boundary of boundaries) {
+    let span = text.substring(prev, boundary);
+    prev = boundary;
     if(isNonSpace(span)) spans.push(span);
   }
   return spans;
