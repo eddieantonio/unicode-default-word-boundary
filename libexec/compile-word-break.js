@@ -16,6 +16,7 @@ const fs = require('fs');
 const path = require('path');
 
 const MAX_CODE_POINT = 0x10FFFF;
+const UNICODE_VERSION = '15.1.0';
 
 // Where to get the data:
 //  - http://www.unicode.org/reports/tr51/#emoji_data
@@ -26,13 +27,6 @@ const MAX_CODE_POINT = 0x10FFFF;
 const genDirectory = path.join(__dirname, '..', 'src', 'gen');
 const generatedFilename = path.join(genDirectory, 'WordBreakProperty.ts');
 
-// Ensure this package's major version number is in sync with the Unicode
-// major version.
-const packageVersion = require('../package.json').version.split('.');
-const UNICODE_VERSION = `${packageVersion[0]}.${packageVersion[1]}.0`;
-
-// The data files should be in this repository, with names matching the
-// Unicode version.
 let wordBoundaryFilename = path.join(__dirname, `./WordBreakProperty-${UNICODE_VERSION}.txt.gz`);
 let emojiDataFilename = path.join(__dirname, `./emoji-data-${UNICODE_VERSION}.txt.gz`);
 

@@ -158,6 +158,14 @@ If you want to regenerate it afterwards, you can run the build script:
     npm run build
 
 
+### Measuring performance
+Run `npm run test-performance` to measure the performance of the split function from the `lib` directory. You can also run `npm run ava -- --config ava-performance.config.cjs` to skip the `tsc` compilation step.
+
+
+### Unicode version
+Unicode version is specified at the top of the `compile-word-break.js` file. If you want to update the Unicode version, you will need to update the version in the `compile-word-break.js` file and download the new Unicode data files from the Unicode website. The Unicode data files must match the version specified in the `compile-word-break.js` file.
+
+
 License
 -------
 
