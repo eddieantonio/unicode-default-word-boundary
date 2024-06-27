@@ -9,6 +9,8 @@
   ],
   "scripts": {
     "test": "tsc && ava --verbose --timeout 5m",
+    "test-performance": "tsc && ava --verbose --timeout 5m --config ava-performance.config.cjs",
+    "ava": "ava --verbose --timeout 5m",
     "build": "node ./libexec/compile-word-break.js && tsc",
     "prepare": "npm run build",
     "prepack": "./libexec/strip-debug-from-src"
@@ -36,13 +38,5 @@
     "strip-debug-cli": "^2.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5"
-  },
-  "ava": {
-    "extensions": [
-      "ts"
-    ],
-    "require": [
-      "ts-node/register"
-    ]
   }
 }
