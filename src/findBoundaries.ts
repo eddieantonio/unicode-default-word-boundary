@@ -30,7 +30,25 @@
  * See: https://unicode.org/reports/tr29/#Default_Word_Boundaries
  */
 
-import { WordBreakProperty, WORD_BREAK_PROPERTY, extendedPictographic, I } from './gen/WordBreakProperty';
+import {
+  WordBreakProperty,
+  WORD_BREAK_PROPERTY,
+  extendedPictographic,
+  I,
+} from "./gen/WordBreakProperty";
+
+const assert = (() => {
+  if (typeof (globalThis as any).require === "function") {
+    // If we're in node, use the built-in assert module.
+    return (test: boolean) =>
+      void (globalThis as any).require("assert").strictEqual(test, true);
+  } else if (typeof (globalThis as any) === "object") {
+    // If we're in the browser, use the console.assert.
+    return (test: boolean) => void (globalThis as any).console.assert(test);
+  }
+  // Otherwise, just ignore the assertion.
+  return (test: boolean) => {};
+})();
 
 /**
  * Yields a series of string indices where a word break should
@@ -74,13 +92,17 @@ export function* findBoundaries(text: string): Iterable<number> {
   // Count RIs to make sure we're not splitting emoji flags:
   let nConsecutiveRegionalIndicators = 0;
 
-  do  {
+  do {
     // Shift all positions, one scalar value to the right.
     rightPos = lookaheadPos;
     lookaheadPos = positionAfter(lookaheadPos);
     // Shift all properties, one scalar value to the right.
-    [lookbehind, left, right, lookahead] =
-      [left, right, lookahead, wordbreakPropertyAt(lookaheadPos)];
+    [lookbehind, left, right, lookahead] = [
+      left,
+      right,
+      lookahead,
+      wordbreakPropertyAt(lookaheadPos),
+    ];
 
     // Break at the start and end of text, unless the text is empty.
     // WB1: Break at start of text...
@@ -90,7 +112,7 @@ export function* findBoundaries(text: string): Iterable<number> {
     }
     // WB2: Break at the end of text...
     if (right === WordBreakProperty.eot) {
-      console.assert(rightPos === text.length);
+      assert(rightPos === text.length);
       yield rightPos;
       break; // Reached the end of the string. We're done!
     }
@@ -98,16 +120,20 @@ export function* findBoundaries(text: string): Iterable<number> {
     if (left === WordBreakProperty.CR && right === WordBreakProperty.LF)
       continue;
     // WB3b: Otherwise, break after...
-    if (left === WordBreakProperty.Newline ||
-        left == WordBreakProperty.CR ||
-        left === WordBreakProperty.LF) {
+    if (
+      left === WordBreakProperty.Newline ||
+      left == WordBreakProperty.CR ||
+      left === WordBreakProperty.LF
+    ) {
       yield rightPos;
       continue;
     }
     // WB3a: ...and before newlines
-    if (right === WordBreakProperty.Newline ||
-        right === WordBreakProperty.CR ||
-        right === WordBreakProperty.LF) {
+    if (
+      right === WordBreakProperty.Newline ||
+      right === WordBreakProperty.CR ||
+      right === WordBreakProperty.LF
+    ) {
       yield rightPos;
       continue;
     }
@@ -115,15 +141,21 @@ export function* findBoundaries(text: string): Iterable<number> {
     // HACK: advance by TWO positions to handle tricky emoji
     // combining sequences, that SHOULD be kept together by
     // WB3c, but are prematurely split by WB4:
-    if (left === WordBreakProperty.Other &&
-        (right === WordBreakProperty.Extend || right === WordBreakProperty.Format) &&
-        lookahead === WordBreakProperty.ZWJ) {
+    if (
+      left === WordBreakProperty.Other &&
+      (right === WordBreakProperty.Extend ||
+        right === WordBreakProperty.Format) &&
+      lookahead === WordBreakProperty.ZWJ
+    ) {
       // To ensure this is not split, advance TWO positions forward.
       for (let i = 0; i < 2; i++) {
         [rightPos, lookaheadPos] = [lookaheadPos, positionAfter(lookaheadPos)];
       }
-      [left, right, lookahead] =
-        [lookahead, wordbreakPropertyAt(rightPos), wordbreakPropertyAt(lookaheadPos)];
+      [left, right, lookahead] = [
+        lookahead,
+        wordbreakPropertyAt(rightPos),
+        wordbreakPropertyAt(lookaheadPos),
+      ];
       // N.B. `left` now MUST be ZWJ, setting it up for WB3c proper.
     }
 
@@ -132,7 +164,10 @@ export function* findBoundaries(text: string): Iterable<number> {
       continue;
 
     // WB3d: Keep horizontal whitespace together
-    if (left === WordBreakProperty.WSegSpace && right == WordBreakProperty.WSegSpace)
+    if (
+      left === WordBreakProperty.WSegSpace &&
+      right == WordBreakProperty.WSegSpace
+    )
       continue;
 
     // WB4: Ignore format and extend characters
@@ -140,9 +175,11 @@ export function* findBoundaries(text: string): Iterable<number> {
     // See: Section 6.2: https://unicode.org/reports/tr29/#Grapheme_Cluster_and_Format_Rules
     // N.B.: The rule about "except after sot, CR, LF, and
     // Newline" already been by WB1, WB2, WB3a, and WB3b above.
-    while (right === WordBreakProperty.Format ||
-           right === WordBreakProperty.Extend ||
-           right === WordBreakProperty.ZWJ) {
+    while (
+      right === WordBreakProperty.Format ||
+      right === WordBreakProperty.Extend ||
+      right === WordBreakProperty.ZWJ
+    ) {
       // Continue advancing in the string, as if these
       // characters do not exist. DO NOT update left and
       // lookbehind however!
@@ -153,15 +190,17 @@ export function* findBoundaries(text: string): Iterable<number> {
     // have fallen off the end of the string, so end the loop
     // prematurely if that happens!
     if (right === WordBreakProperty.eot) {
-      console.assert(rightPos === text.length);
+      assert(rightPos === text.length);
       yield rightPos;
       break;
     }
     // WB4 (continued): Lookahead must ALSO ignore these format,
     // extend, ZWJ characters!
-    while (lookahead === WordBreakProperty.Format ||
-           lookahead === WordBreakProperty.Extend ||
-           lookahead === WordBreakProperty.ZWJ) {
+    while (
+      lookahead === WordBreakProperty.Format ||
+      lookahead === WordBreakProperty.Extend ||
+      lookahead === WordBreakProperty.ZWJ
+    ) {
       // Continue advancing in the string, as if these
       // characters do not exist. DO NOT update left and right,
       // however!
@@ -170,63 +209,92 @@ export function* findBoundaries(text: string): Iterable<number> {
     }
 
     // WB5: Do not break between most letters.
-    if (isAHLetter(left) && isAHLetter(right))
-      continue;
+    if (isAHLetter(left) && isAHLetter(right)) continue;
     // Do not break across certain punctuation
     // WB6: (Don't break before apostrophes in contractions)
-    if (isAHLetter(left) && isAHLetter(lookahead) &&
-      (right === WordBreakProperty.MidLetter || isMidNumLetQ(right)))
+    if (
+      isAHLetter(left) &&
+      isAHLetter(lookahead) &&
+      (right === WordBreakProperty.MidLetter || isMidNumLetQ(right))
+    )
       continue;
     // WB7: (Don't break after apostrophes in contractions)
-    if (isAHLetter(lookbehind) && isAHLetter(right) &&
-      (left === WordBreakProperty.MidLetter || isMidNumLetQ(left)))
+    if (
+      isAHLetter(lookbehind) &&
+      isAHLetter(right) &&
+      (left === WordBreakProperty.MidLetter || isMidNumLetQ(left))
+    )
       continue;
     // WB7a
-    if (left === WordBreakProperty.Hebrew_Letter && right === WordBreakProperty.Single_Quote)
+    if (
+      left === WordBreakProperty.Hebrew_Letter &&
+      right === WordBreakProperty.Single_Quote
+    )
       continue;
     // WB7b
-    if (left === WordBreakProperty.Hebrew_Letter && right === WordBreakProperty.Double_Quote &&
-        lookahead === WordBreakProperty.Hebrew_Letter)
+    if (
+      left === WordBreakProperty.Hebrew_Letter &&
+      right === WordBreakProperty.Double_Quote &&
+      lookahead === WordBreakProperty.Hebrew_Letter
+    )
       continue;
     // WB7c
-    if (lookbehind === WordBreakProperty.Hebrew_Letter && left === WordBreakProperty.Double_Quote &&
-        right === WordBreakProperty.Hebrew_Letter)
+    if (
+      lookbehind === WordBreakProperty.Hebrew_Letter &&
+      left === WordBreakProperty.Double_Quote &&
+      right === WordBreakProperty.Hebrew_Letter
+    )
       continue;
     // Do not break within sequences of digits, or digits adjacent to letters.
     // e.g., "3a" or "A3"
     // WB8
-    if (left === WordBreakProperty.Numeric && right === WordBreakProperty.Numeric)
+    if (
+      left === WordBreakProperty.Numeric &&
+      right === WordBreakProperty.Numeric
+    )
       continue;
     // WB9
-    if (isAHLetter(left) && right === WordBreakProperty.Numeric)
-      continue;
+    if (isAHLetter(left) && right === WordBreakProperty.Numeric) continue;
     // WB10
-    if (left === WordBreakProperty.Numeric && isAHLetter(right))
-      continue;
+    if (left === WordBreakProperty.Numeric && isAHLetter(right)) continue;
     // Do not break within sequences, such as 3.2, 3,456.789
     // WB11
-    if (lookbehind === WordBreakProperty.Numeric && right === WordBreakProperty.Numeric &&
-      (left === WordBreakProperty.MidNum || isMidNumLetQ(left)))
+    if (
+      lookbehind === WordBreakProperty.Numeric &&
+      right === WordBreakProperty.Numeric &&
+      (left === WordBreakProperty.MidNum || isMidNumLetQ(left))
+    )
       continue;
     // WB12
-    if (left === WordBreakProperty.Numeric && lookahead === WordBreakProperty.Numeric &&
-        (right === WordBreakProperty.MidNum || isMidNumLetQ(right)))
+    if (
+      left === WordBreakProperty.Numeric &&
+      lookahead === WordBreakProperty.Numeric &&
+      (right === WordBreakProperty.MidNum || isMidNumLetQ(right))
+    )
       continue;
     // WB13: Do not break between Katakana
-    if (left === WordBreakProperty.Katakana && right === WordBreakProperty.Katakana)
+    if (
+      left === WordBreakProperty.Katakana &&
+      right === WordBreakProperty.Katakana
+    )
       continue;
     // Do not break from extenders (e.g., U+202F NARROW NO-BREAK SPACE)
     // WB13a
-    if ((isAHLetter(left) ||
-         left === WordBreakProperty.Numeric ||
-         left === WordBreakProperty.Katakana ||
-         left === WordBreakProperty.ExtendNumLet) &&
-         right === WordBreakProperty.ExtendNumLet)
+    if (
+      (isAHLetter(left) ||
+        left === WordBreakProperty.Numeric ||
+        left === WordBreakProperty.Katakana ||
+        left === WordBreakProperty.ExtendNumLet) &&
+      right === WordBreakProperty.ExtendNumLet
+    )
       continue;
     // WB13b
-    if ((isAHLetter(right) ||
-      right === WordBreakProperty.Numeric ||
-      right === WordBreakProperty.Katakana) && left === WordBreakProperty.ExtendNumLet)
+    if (
+      (isAHLetter(right) ||
+        right === WordBreakProperty.Numeric ||
+        right === WordBreakProperty.Katakana) &&
+      left === WordBreakProperty.ExtendNumLet
+    )
       continue;
 
     // WB15 & WB16:
@@ -241,7 +309,7 @@ export function* findBoundaries(text: string): Iterable<number> {
       // we happen to be inside the middle of an odd numbered of
       // Regional_Indicators, DON'T SPLIT IT!
       nConsecutiveRegionalIndicators += 1;
-      if ((nConsecutiveRegionalIndicators % 2) == 1) {
+      if (nConsecutiveRegionalIndicators % 2 == 1) {
         continue;
       }
     } else {
@@ -292,19 +360,23 @@ export function* findBoundaries(text: string): Iterable<number> {
   // Word_Break rule macros
   // See: https://unicode.org/reports/tr29/#WB_Rule_Macros
   function isAHLetter(prop: WordBreakProperty): boolean {
-    return prop === WordBreakProperty.ALetter ||
-           prop === WordBreakProperty.Hebrew_Letter;
+    return (
+      prop === WordBreakProperty.ALetter ||
+      prop === WordBreakProperty.Hebrew_Letter
+    );
   }
 
   function isMidNumLetQ(prop: WordBreakProperty): boolean {
-    return prop === WordBreakProperty.MidNumLet ||
-           prop === WordBreakProperty.Single_Quote;
+    return (
+      prop === WordBreakProperty.MidNumLet ||
+      prop === WordBreakProperty.Single_Quote
+    );
   }
 }
 
 function isStartOfSurrogatePair(character: string) {
   let codeUnit = character.charCodeAt(0);
-  return codeUnit >= 0xD800 && codeUnit <= 0xDBFF;
+  return codeUnit >= 0xd800 && codeUnit <= 0xdbff;
 }
 
 /**
@@ -314,7 +386,7 @@ function isStartOfSurrogatePair(character: string) {
  */
 export function property(character: string): WordBreakProperty {
   // This MUST be a scalar value.
-  console.assert(character.length === 1 || character.length === 2);
+  assert(character.length === 1 || character.length === 2);
   // TODO: remove dependence on character.codepointAt()?
   let codepoint = character.codePointAt(0) as number;
   return searchForProperty(codepoint, 0, WORD_BREAK_PROPERTY.length - 1);
@@ -323,7 +395,11 @@ export function property(character: string): WordBreakProperty {
 /**
  * Binary search for the word break property of a given CODE POINT.
  */
-function searchForProperty(codePoint: number, left: number, right: number): WordBreakProperty {
+function searchForProperty(
+  codePoint: number,
+  left: number,
+  right: number
+): WordBreakProperty {
   // All items that are not found in the array are assigned the 'Other' property.
   if (right < left) {
     return WordBreakProperty.Other;
@@ -342,8 +418,8 @@ function searchForProperty(codePoint: number, left: number, right: number): Word
   }
 
   // We found it!
-  console.assert(candidate[I.Start] <= codePoint);
-  console.assert(codePoint < startOfNextRange);
+  assert(candidate[I.Start] <= codePoint);
+  assert(codePoint < startOfNextRange);
 
   return candidate[I.Value];
 }

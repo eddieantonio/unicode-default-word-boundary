@@ -22,14 +22,14 @@
 
 // See: https://unicode.org/reports/tr29/#Default_Word_Boundaries
 
-import { findBoundaries, property } from './findBoundaries';
-import { WordBreakProperty } from './gen/WordBreakProperty';
+import { findBoundaries, property } from "./findBoundaries";
+import { WordBreakProperty } from "./gen/WordBreakProperty";
 
 /**
  * A span of text that is guarenteed to be between two word boundaries. There
  * can be no boundaries bisecting this span -- i.e., this span is indivisible,
  * as far as word boundaries are concerned.
- * 
+ *
  * If you're familiar with the concept of *basic block* from compiler
  * construction and static program analysis, this is a similar concept.
  */
@@ -55,7 +55,7 @@ export interface BasicSpan {
  */
 export function split(text: string): string[] {
   let spans = Array.from(findSpans(text));
-  return spans.map(span => span.text).filter(isNonSpace);
+  return spans.map((span) => span.text).filter(isNonSpace);
 }
 
 /**
@@ -65,14 +65,18 @@ export function split(text: string): string[] {
 export function* findSpans(text: string): IterableIterator<BasicSpan> {
   // TODO: don't throw the boundaries into an array.
   let boundaries = Array.from(findBoundaries(text));
-  
+
   if (boundaries.length == 0) {
     return;
   }
 
   // All non-empty strings have at least TWO boundaries at the start and end of
   // the string.
-  console.assert(boundaries.length >= 2);
+  if (boundaries.length < 2) {
+    throw new Error(
+      `Internal error: non-empty string should have at least two boundaries, but doesn't.`
+    );
+  }
 
   for (let i = 0; i < boundaries.length - 1; i++) {
     let start = boundaries[i];
@@ -80,7 +84,7 @@ export function* findSpans(text: string): IterableIterator<BasicSpan> {
     yield new LazySpan(text, start, end);
   }
 }
-  
+
 /**
  * A span that does not cut out the substring until it absolutely has to!
  */
@@ -109,10 +113,13 @@ class LazySpan implements BasicSpan {
  * @param chunk a chunk of text. Starts and ends at word boundaries.
  */
 function isNonSpace(chunk: string): boolean {
-  return !Array.from(chunk).map(property).every(wb => (
-    wb === WordBreakProperty.CR ||
-    wb === WordBreakProperty.LF ||
-    wb === WordBreakProperty.Newline ||
-    wb === WordBreakProperty.WSegSpace
-  ));
+  return !Array.from(chunk)
+    .map(property)
+    .every(
+      (wb) =>
+        wb === WordBreakProperty.CR ||
+        wb === WordBreakProperty.LF ||
+        wb === WordBreakProperty.Newline ||
+        wb === WordBreakProperty.WSegSpace
+    );
 }
