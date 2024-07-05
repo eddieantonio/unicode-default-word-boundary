@@ -25,6 +25,8 @@
 import { findBoundaries, property } from "./findBoundaries";
 import { WordBreakProperty } from "./gen/WordBreakProperty";
 
+export { findBoundaries };
+
 /**
  * A span of text that is guarenteed to be between two word boundaries. There
  * can be no boundaries bisecting this span -- i.e., this span is indivisible,
