@@ -29,7 +29,10 @@ const generatedFilename = path.join(genDirectory, 'WordBreakProperty.ts');
 // Ensure this package's major version number is in sync with the Unicode
 // major version.
 const packageVersion = require('../package.json').version;
-const UNICODE_VERSION = packageVersion.split('.')[0] + '.0.0';
+const UNICODE_VERSION = (() => {
+  const [major, minor, patch] = packageVersion.split('.')
+  return `${major}.${minor}.0`;
+})();
 
 // The data files should be in this repository, with names matching the
 // Unicode version.
