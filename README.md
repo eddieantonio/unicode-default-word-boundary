@@ -56,7 +56,7 @@ split(`ᑕᐻ ᒥᔪ ᑭᓯᑲᐤ ᐊᓄᐦᐨ᙮`);
 
 ...and many more!
 
-More advanced use cases will want to use the `findSpans()` function.
+More advanced use cases will want to use the `findSpans()` or the `findBoundaries` function.
 
 
 What doesn't work
@@ -125,6 +125,13 @@ Will yield spans with the following properties:
 shown above. The objects that `findSpans()` yield will adhere to the
 `BasicSpan` interface, however what `findSpans()` actually yields may
 differ from simple objects.
+
+
+### `findBoundaries(text: string): Generator<number, void, void>`
+
+`findBoundaries()` is like `findSpans()` except it yields the _index_ of
+each successive word boundary. Anecdotally, using this function directly
+might be faster than generating spans objects with `findSpans()`.
 
 
 Contributing and Maintaining
