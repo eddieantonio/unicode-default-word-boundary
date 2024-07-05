@@ -1,13 +1,15 @@
-import test, { Macro } from 'ava';
-import { split, findSpans } from '../src';
+import test from "ava";
+import { split, findSpans } from "../src";
 
 // Macros
-const splitExample: Macro<[string, string[]]> = (t, input, output) => {
-  t.deepEqual(split(input), output);
-};
-splitExample.title = (providedTitle = '', input, _expected) =>
-  `split(\`${input}\`)`;
-
+const splitExample = test.macro({
+  exec(t, input: string, output: string[]) {
+    t.deepEqual(split(input), output);
+  },
+  title(providedTitle = "", input: string) {
+    return `split(\`${input}\`)`;
+  },
+});
 
 // Tests
 
