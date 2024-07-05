@@ -70,7 +70,7 @@ dictionary-based approaches to split words in these languages.
 API Documentation
 -----------------
 
-There are two exported function: `split()` and `findSpans()`.
+The following functions make up the primary API:
 
 ### `split(text: string): string[]`
 
