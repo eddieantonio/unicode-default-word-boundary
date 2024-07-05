@@ -57,7 +57,7 @@ const assert = (() => {
  *
  * @param text Text to find word boundaries in.
  */
-export function* findBoundaries(text: string): Iterable<number> {
+export function* findBoundaries(text: string): Generator<number, void, void> {
   // WB1 and WB2: no boundaries if given an empty string.
   if (text.length === 0) {
     // There are no boundaries in an empty string!
