@@ -39,7 +39,7 @@ import {
 
 const BITS_PER_WORD = 5;
 const ENTRIES_PER_WORD = 6;
-const MAX_CODE_POINT = 0x10ffff;
+const NUMBER_OF_CODE_POINTS = 0x110000;
 
 const assert = (() => {
   if (typeof (globalThis as any).require === "function") {
@@ -480,7 +480,7 @@ function lookupProperty(codepoint: number): WordBreakProperty {
  * or 742,744 bytes (just over 726 KiB).
  */
 function createLookupTable(): Uint32Array {
-  const lut = new Uint32Array(~~(MAX_CODE_POINT / ENTRIES_PER_WORD));
+  const lut = new Uint32Array(Math.ceil(NUMBER_OF_CODE_POINTS / ENTRIES_PER_WORD));
 
   let wordIndex = 0;
   let entryIndex = 0;
