@@ -398,17 +398,89 @@ export function property(character: string): WordBreakProperty {
   return lookupProperty(codepoint);
 }
 
+/**
+ * @returns The WordBreakProperty for the given code point.
+ */
 function lookupProperty(codepoint: number): WordBreakProperty {
+  // This uses the dense lookup table to find the property.  Each word in the
+  // table contains the properties for six contiguous code points.  A word in
+  // the lookup table looks like this:
+  //
+  //   |    | 29–25 | 24–20 | 19–15 | 15–10 | 9 – 5 | 4 – 0 |
+  //   | 00 |  w[5] |  w[4] |  w[3] |  w[2] |  w[1] |  w[0] |
+  //
+  // Where w[i] is the word break property for the i-th code point in the word.
+  // Unfortunately, we don't ACTUALLY have the array w[0]...w[5], but we can
+  // use bitwise operations to shift it out!
+  //
+  // To find the word that contains the property for a given code point, we divide
+  // the code point by 6 (the number of code points per word), then use the
+  // remainder as the index WITHIN the word to find the property.  To access the
+  // i-th property, we left shift the word by i * 5 bits and mask off the lower
+  // 5 bits.
+
   const wordIndex = ~~(codepoint / ENTRIES_PER_WORD);
-  const shift = codepoint % ENTRIES_PER_WORD;
+  const i = codepoint % ENTRIES_PER_WORD;
   const word = DENSE_LOOKUP[wordIndex];
-  return (word >> (shift * BITS_PER_WORD)) & 0b11111;
+  return (word >> (i * BITS_PER_WORD)) & 0b11111;
+
+  // For example, say we want to find the word break property for code point U+0388.
+  //
+  // Dividing by 6 gives us a word index of 0x0388 / 6 = 150.
+  // The remainder is 0x0388 % 6 = 4.
+  //
+  // DENSE_LOOKUP[150] is:
+  //
+  //   |    | 29–25 | 24–20 | 19–15 | 15–10 | 9 – 5 | 4 – 0 |
+  //   | 00 |  w[5] |  w[4] |  w[3] |  w[2] |  w[1] |  w[0] |
+  //   | 00 | 01011 | 01011 | 01010 | 01011 | 00000 | 00000 |
+  //
+  // We want w[4], so we shift the word 4 * 5 = 20 bits to the right:
+  //
+  //   |    | 29–25 | 24–20 | 19–15 | 15–10 | 9 – 5 | 4 – 0 |
+  //   | 00 | 00000 | 00000 | 00000 | 00000 |  w[5] |  w[4] |
+  //   | 00 | 00000 | 00000 | 00000 | 00000 | 01011 | 01011 |
+  //
+  // Then we need to keep ONLY the lower 5 bits, so we bitwise AND with
+  // 0b11111:
+  //
+  //         0101101011
+  //      &       11111
+  //      -------------
+  //      =       01011
+  //
+  // 0b01011 is our word break property.
 }
 
-// For every entry in WORD_BREAK_PROPERTY set the appropriate bits in the lookup table.
-// Each codepoint is represented as 5 bits in the lookup table, with six entries per 32-bit word.
+/**
+ * Creates a dense lookup table from the ranges in WORD_BREAK_PROPERTY.
+ *
+ * The lookup table divides the Unicode code space into 32-bit words, with each
+ * containing the word break property for six code points, each represented by 5 bits.
+ *
+ * As of Unicode 15.1.0, there are 18 distinct word break properties (plus the
+ * psuedo-properties sot and eot), meaning that 5 bits are required to represent
+ * a single code point.
+ *
+ * Here's how each 32-bit word is divided:
+ *
+ *     |    | 29–25 | 24–20 | 19–15 | 15–10 | 9 – 5 | 4 – 0 |
+ *     | 00 | fffff | eeeee | ddddd | ccccc | bbbbb | aaaaa |
+ *
+ * Where:
+ *  - aaaaa is the word break property for the first code point in the entry
+ *  - bbbbb is the word break property for the second code point in the entry
+ *  - ...
+ *  - fffff is the word break property for the sixth code point in the entry
+ *  - The top 2 bits are unused.
+ *
+ * See `lookupProperty()` for how to use this table.
+ *
+ * The result is a Uint32Array with a length of 0x110000 / 6 = 185,686 entries,
+ * or 742,744 bytes (just over 726 KiB).
+ */
 function createLookupTable(): Uint32Array {
-  const lut = new Uint32Array(MAX_CODE_POINT);
+  const lut = new Uint32Array(~~(MAX_CODE_POINT / ENTRIES_PER_WORD));
 
   let wordIndex = 0;
   let entryIndex = 0;
