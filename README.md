@@ -164,6 +164,7 @@ If you want to regenerate it afterwards, you can run the build script:
 
     npm run build
 
+
 ### Benchmarking
 
 To run the benchmarks, you can run the following:
@@ -180,19 +181,21 @@ and run the tests**, then, in the main working tree, I can run
 benchmarks:
 
     cd opt/
+    npm install
     vim       # do whatever you need to do here
     npm test  # this also compiles the TypeScript
     cd ..
     npm run benchmarks
 
+
 License
 -------
 
-TypeScript implementation © 2019 National Research Council
-Canada. MIT Licensed.
+TypeScript implementation © 2019 National Research Council Canada,
+© 2024 Eddie Antonio Santos. MIT Licensed.
 
 The algorithm comes from [UAX #29: Unicode Text Segmentation, an
-integral part of the Unicode Standard, version 12.0][uax29].
+integral part of the Unicode Standard, version 15.1][uax29].
 
 [defaultwb]: https://unicode.org/reports/tr29/#Default_Word_Boundaries
 [mdnregexp]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions/Character_Classes#Types
