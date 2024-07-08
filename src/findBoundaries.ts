@@ -37,6 +37,10 @@ import {
   I,
 } from "./gen/WordBreakProperty";
 
+const BITS_PER_WORD = 5;
+const ENTRIES_PER_WORD = 6;
+const MAX_CODE_POINT = 0x10ffff;
+
 const assert = (() => {
   if (typeof (globalThis as any).require === "function") {
     // If we're in node, use the built-in assert module.
@@ -49,6 +53,8 @@ const assert = (() => {
   // Otherwise, just ignore the assertion.
   return (test: boolean) => {};
 })();
+
+const DENSE_LOOKUP = createLookupTable();
 
 /**
  * Yields a series of string indices where a word break should
@@ -389,37 +395,57 @@ export function property(character: string): WordBreakProperty {
   assert(character.length === 1 || character.length === 2);
   // TODO: remove dependence on character.codepointAt()?
   let codepoint = character.codePointAt(0) as number;
-  return searchForProperty(codepoint, 0, WORD_BREAK_PROPERTY.length - 1);
+  return lookupProperty(codepoint);
 }
 
-/**
- * Binary search for the word break property of a given CODE POINT.
- */
-function searchForProperty(
-  codePoint: number,
-  left: number,
-  right: number
-): WordBreakProperty {
-  // All items that are not found in the array are assigned the 'Other' property.
-  if (right < left) {
-    return WordBreakProperty.Other;
+function lookupProperty(codepoint: number): WordBreakProperty {
+  const wordIndex = ~~(codepoint / ENTRIES_PER_WORD);
+  const shift = codepoint % ENTRIES_PER_WORD;
+  const word = DENSE_LOOKUP[wordIndex];
+  return (word >> (shift * BITS_PER_WORD)) & 0b11111;
+}
+
+// For every entry in WORD_BREAK_PROPERTY set the appropriate bits in the lookup table.
+// Each codepoint is represented as 5 bits in the lookup table, with six entries per 32-bit word.
+function createLookupTable(): Uint32Array {
+  const lut = new Uint32Array(MAX_CODE_POINT);
+
+  let wordIndex = 0;
+  let entryIndex = 0;
+  let currentWord = 0;
+
+  // Do all but the LAST range:
+  for (let i = 0; i < WORD_BREAK_PROPERTY.length - 1; i++) {
+    const [start, wbProperty] = WORD_BREAK_PROPERTY[i];
+    // Get end from the NEXT entry in WORD_BREAK_PROPERTY
+    const end = WORD_BREAK_PROPERTY[i + 1][I.Start];
+
+    for (let codePoint = start; codePoint < end; codePoint++) {
+      currentWord |= wbProperty << (BITS_PER_WORD * entryIndex);
+      entryIndex++;
+
+      if (entryIndex === ENTRIES_PER_WORD) {
+        lut[wordIndex] = currentWord;
+
+        // Reset for the next entry:
+        currentWord = 0;
+        wordIndex++;
+        entryIndex = 0;
+      }
+    }
   }
 
-  let midpoint = left + ~~((right - left) / 2);
-  let candidate = WORD_BREAK_PROPERTY[midpoint];
-
-  let nextRange = WORD_BREAK_PROPERTY[midpoint + 1];
-  let startOfNextRange = nextRange ? nextRange[I.Start] : Infinity;
-
-  if (codePoint < candidate[I.Start]) {
-    return searchForProperty(codePoint, left, midpoint - 1);
-  } else if (codePoint >= startOfNextRange) {
-    return searchForProperty(codePoint, midpoint + 1, right);
+  // Finish up the last entry.
+  if (entryIndex !== 0) {
+    lut[wordIndex] = currentWord;
+    wordIndex++;
+    entryIndex = 0;
   }
 
-  // We found it!
-  assert(candidate[I.Start] <= codePoint);
-  assert(codePoint < startOfNextRange);
+  // Uint32Array is initialized to zero, so we don't need to do anything special
+  // for the last entry, AS LON AS the last range in WORD_BREAK_PROPERTY is zero
+  // ('Other')
+  assert(WORD_BREAK_PROPERTY[WORD_BREAK_PROPERTY.length - 1][I.Value] === 0);
 
-  return candidate[I.Value];
+  return lut;
 }
