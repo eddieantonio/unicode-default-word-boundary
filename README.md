@@ -164,6 +164,26 @@ If you want to regenerate it afterwards, you can run the build script:
 
     npm run build
 
+### Benchmarking
+
+To run the benchmarks, you can run the following:
+
+    npm run benchmarks
+
+If you want to compare the current implementations with a new
+implementation, what I do is create a new working tree called `opt/`:
+
+    git worktree add -b new-version-with-optimizations opt 
+
+Then, I make changes inside the working tree inside `opt/`, **compile
+and run the tests**, then, in the main working tree, I can run
+benchmarks:
+
+    cd opt/
+    vim       # do whatever you need to do here
+    npm test  # this also compiles the TypeScript
+    cd ..
+    npm run benchmarks
 
 License
 -------
