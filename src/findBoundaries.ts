@@ -38,8 +38,8 @@ import {
   I,
 } from "./gen/WordBreakProperty";
 
-const BITS_PER_WORD = 5;
-const ENTRIES_PER_WORD = 6;
+const BITS_PER_WORD = 4;
+const ENTRIES_PER_WORD = 8;
 const NUMBER_OF_CODE_POINTS = 0x110000;
 
 const assert = (() => {
@@ -398,10 +398,10 @@ function lookupProperty(codepoint: number): WordBreakProperty {
   // i-th property, we left shift the word by i * 5 bits and mask off the lower
   // 5 bits.
 
-  const wordIndex = ~~(codepoint / ENTRIES_PER_WORD);
-  const i = codepoint % ENTRIES_PER_WORD;
+  const wordIndex = codepoint >> 3;
+  const i = codepoint & 0b111;
   const word = DENSE_LOOKUP[wordIndex];
-  return (word >> (i * BITS_PER_WORD)) & 0b11111;
+  return (word >> (i * BITS_PER_WORD)) & 0xf;
 
   // For example, say we want to find the word break property for code point U+0388.
   //
@@ -472,7 +472,7 @@ function createLookupTable(): Uint32Array {
     const end = WORD_BREAK_PROPERTY[i + 1][I.Start];
 
     for (let codePoint = start; codePoint < end; codePoint++) {
-      currentWord |= wbProperty << (BITS_PER_WORD * entryIndex);
+      currentWord |= Math.min(wbProperty, 0xf) << (BITS_PER_WORD * entryIndex);
       entryIndex++;
 
       if (entryIndex === ENTRIES_PER_WORD) {
