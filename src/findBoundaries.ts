@@ -366,7 +366,13 @@ function isStartOfSurrogatePair(character: string) {
 export function property(character: string): WordBreakProperty {
   // This MUST be a scalar value.
   assert(character.length === 1 || character.length === 2);
-  // TODO: remove dependence on character.codepointAt()?
+
+  if (character == "\u000A") return WordBreakProperty.LF;
+  if (character == "\u000D") return WordBreakProperty.CR;
+  if (character == `"`) return WordBreakProperty.Double_Quote;
+  if (character == "'") return WordBreakProperty.Single_Quote;
+  if (character == "\u200d") return WordBreakProperty.ZWJ;
+
   let codepoint = character.codePointAt(0) as number;
   return lookupProperty(codepoint);
 }
