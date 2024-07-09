@@ -62,6 +62,24 @@ for (let { property } of ranges) {
 categories.add("sot");
 categories.add("eot");
 
+// Maps Property -> count of code points in the category
+let codepointsPerProperty = new Map();
+for (let { start, end, property } of ranges) {
+  let initial = codepointsPerProperty.get(property) || 0;
+  codepointsPerProperty.set(property, initial + end - start + 1);
+}
+
+let singletons = new Set();
+let outsideIndex = 16; // will be used to generate "outside" properties
+for (let [property, count] of codepointsPerProperty.entries()) {
+  if (count == 1) singletons.add(property);
+}
+
+if (categories.size - singletons.size - 2 > 16) {
+  console.error("Too many property values that must be encoded");
+  process.exit(-1);
+}
+
 //////////////////////////////////// Extended_Pictographic=Yes /////////////////////////////////////
 
 let extendedPictographicCodePoints = readZippedCharacterPropertyFile(emojiDataFilename).filter(
@@ -91,7 +109,13 @@ export const enum WordBreakProperty {
 ${
   /* Create enum values for each word break property */
   Array.from(categories)
-    .map((x) => `  ${x}`)
+    .map((property) => {
+      if (singletons.has(property)) {
+        return `  ${property} = ${outsideIndex++}`;
+      } else {
+        return `  ${property}`;
+      }
+    })
     .join(",\n")
 }
 };
