@@ -23,8 +23,8 @@
 
 // See: https://unicode.org/reports/tr29/#Default_Word_Boundaries
 
-import { findBoundaries, property } from "./findBoundaries";
-import { WordBreakProperty } from "./gen/WordBreakProperty";
+import { findBoundaries } from "./findBoundaries";
+import { IS_WHITE_SPACE } from "./gen/WordBreakProperty";
 
 export { findBoundaries };
 
@@ -116,13 +116,5 @@ class LazySpan implements BasicSpan {
  * @param chunk a chunk of text. Starts and ends at word boundaries.
  */
 function isNonSpace(chunk: string): boolean {
-  return !Array.from(chunk)
-    .map(property)
-    .every(
-      (wb) =>
-        wb === WordBreakProperty.CR ||
-        wb === WordBreakProperty.LF ||
-        wb === WordBreakProperty.Newline ||
-        wb === WordBreakProperty.WSegSpace
-    );
+  return !IS_WHITE_SPACE.test(chunk);
 }

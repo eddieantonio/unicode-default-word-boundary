@@ -6,6 +6,7 @@
  *
  *  - a sorted array to facilitate binary search of the Word_Break property.
  *  - a regular expression that matches characters that have Extended_Pictographic=Yes.
+ *  - a regular expression that matches whether a span is made of solely whitespace
  *
  * For internal use only. Please keep away from children.
  *
@@ -83,6 +84,16 @@ if (es6Regexp.length < compatibleRegexp.length) {
   console.warn(`Using compatibility regexp [${compatibleRegexp.length} chars]`);
 }
 
+////////////////////////////// Whitespace regex //////////////////////////////
+let whitespaceRanges = ranges.filter(
+  ({ property }) =>
+    property === "CR" ||
+    property === "LF" ||
+    property === "Newline" ||
+    property === "WSegSpace"
+);
+let whitespaceRegExp = createRegExp(whitespaceRanges);
+
 //////////////////////// Creating the generated file /////////////////////////
 
 // Save the output in the gen/ directory.
@@ -102,6 +113,7 @@ ${ /* Create enum values for each word break property */
 };
 
 export const extendedPictographic = ${extendedPictographicRegExp};
+export const IS_WHITE_SPACE = ${whitespaceRegExp};
 
 /**
  * Constants for indexing values in WORD_BREAK_PROPERTY.
@@ -205,6 +217,18 @@ function utf16AlternativesStrategy() {
 
   let alternatives = codePoints.map(codePointToUTF16Escape);
   return `/^(?:${alternatives.join('|')})/`;
+}
+
+function createRegExp(ranges) {
+  let regexp = "";
+  for (let {start, end} of ranges) {
+    if (start === end) {
+      regexp += toUnicodeEscape(start);
+    } else {
+      regexp += toUnicodeEscape(start) + "-" + toUnicodeEscape(end);
+    }
+  }
+  return `/^[${regexp}]+$/`;
 }
 
 function codePointToUTF16Escape(codePoint) {
