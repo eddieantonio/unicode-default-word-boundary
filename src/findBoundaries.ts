@@ -94,20 +94,20 @@ export function* findBoundaries(text: string): Generator<number, void, void> {
   let lookbehind: WordBreakProperty;
   let left = WordBreakProperty.sot;
   let right = WordBreakProperty.sot;
-  let lookahead = wordbreakPropertyAt(0);
+  let lookahead = wordbreakPropertyAt(text, 0);
   // Count RIs to make sure we're not splitting emoji flags:
   let nConsecutiveRegionalIndicators = 0;
 
   do {
     // Shift all positions, one scalar value to the right.
     rightPos = lookaheadPos;
-    lookaheadPos = positionAfter(lookaheadPos);
+    lookaheadPos = positionAfter(text, lookaheadPos);
     // Shift all properties, one scalar value to the right.
     [lookbehind, left, right, lookahead] = [
       left,
       right,
       lookahead,
-      wordbreakPropertyAt(lookaheadPos),
+      wordbreakPropertyAt(text, lookaheadPos),
     ];
 
     // Break at the start and end of text, unless the text is empty.
@@ -155,18 +155,18 @@ export function* findBoundaries(text: string): Generator<number, void, void> {
     ) {
       // To ensure this is not split, advance TWO positions forward.
       for (let i = 0; i < 2; i++) {
-        [rightPos, lookaheadPos] = [lookaheadPos, positionAfter(lookaheadPos)];
+        [rightPos, lookaheadPos] = [lookaheadPos, positionAfter(text, lookaheadPos)];
       }
       [left, right, lookahead] = [
         lookahead,
-        wordbreakPropertyAt(rightPos),
-        wordbreakPropertyAt(lookaheadPos),
+        wordbreakPropertyAt(text, rightPos),
+        wordbreakPropertyAt(text, lookaheadPos),
       ];
       // N.B. `left` now MUST be ZWJ, setting it up for WB3c proper.
     }
 
     // WB3c: Do not break within emoji ZWJ sequences.
-    if (left === WordBreakProperty.ZWJ && isExtendedPictographicAt(rightPos))
+    if (left === WordBreakProperty.ZWJ && isExtendedPictographicAt(text, rightPos))
       continue;
 
     // WB3d: Keep horizontal whitespace together
@@ -189,8 +189,8 @@ export function* findBoundaries(text: string): Generator<number, void, void> {
       // Continue advancing in the string, as if these
       // characters do not exist. DO NOT update left and
       // lookbehind however!
-      [rightPos, lookaheadPos] = [lookaheadPos, positionAfter(lookaheadPos)];
-      [right, lookahead] = [lookahead, wordbreakPropertyAt(lookaheadPos)];
+      [rightPos, lookaheadPos] = [lookaheadPos, positionAfter(text, lookaheadPos)];
+      [right, lookahead] = [lookahead, wordbreakPropertyAt(text, lookaheadPos)];
     }
     // In ignoring the characters in the previous loop, we could
     // have fallen off the end of the string, so end the loop
@@ -210,8 +210,8 @@ export function* findBoundaries(text: string): Generator<number, void, void> {
       // Continue advancing in the string, as if these
       // characters do not exist. DO NOT update left and right,
       // however!
-      lookaheadPos = positionAfter(lookaheadPos);
-      lookahead = wordbreakPropertyAt(lookaheadPos);
+      lookaheadPos = positionAfter(text, lookaheadPos);
+      lookahead = wordbreakPropertyAt(text, lookaheadPos);
     }
 
     // WB5: Do not break between most letters.
@@ -324,60 +324,57 @@ export function* findBoundaries(text: string): Generator<number, void, void> {
     // WB999: Otherwise, break EVERYWHERE (including around ideographs)
     yield rightPos;
   } while (rightPos < text.length);
+}
 
-  ///// Internal utility functions /////
-
-  /**
-   * Returns the position of the start of the next scalar value. This jumps
-   * over surrogate pairs.
-   *
-   * If asked for the character AFTER the end of the string, this always
-   * returns the length of the string.
-   */
-  function positionAfter(pos: number): number {
-    if (pos >= text.length) {
-      return text.length;
-    } else if (isStartOfSurrogatePair(text[pos])) {
-      return pos + 2;
-    }
-    return pos + 1;
+/**
+ * Returns the position of the start of the next scalar value. This jumps
+ * over surrogate pairs.
+ *
+ * If asked for the character AFTER the end of the string, this always
+ * returns the length of the string.
+ */
+function positionAfter(text: string, pos: number): number {
+  if (pos >= text.length) {
+    return text.length;
+  } else if (isStartOfSurrogatePair(text[pos])) {
+    return pos + 2;
   }
+  return pos + 1;
+}
 
-  /**
-   * Return the value of the Word_Break property at the given string index.
-   * @param pos position in the text.
-   */
-  function wordbreakPropertyAt(pos: number) {
-    if (pos < 0) {
-      return WordBreakProperty.sot; // Always "start of string" before the string starts!
-    } else if (pos >= text.length) {
-      return WordBreakProperty.eot; // Always "end of string" after the string ends!
-    } else if (isStartOfSurrogatePair(text[pos])) {
-      // Surrogate pairs the next TWO items from the string!
-      return property(text[pos] + text[pos + 1]);
-    }
-    return property(text[pos]);
+/**
+ * Return the value of the Word_Break property at the given string index.
+ */
+function wordbreakPropertyAt(text: string, pos: number) {
+  if (pos < 0) {
+    return WordBreakProperty.sot; // Always "start of string" before the string starts!
+  } else if (pos >= text.length) {
+    return WordBreakProperty.eot; // Always "end of string" after the string ends!
+  } else if (isStartOfSurrogatePair(text[pos])) {
+    // Surrogate pairs the next TWO items from the string!
+    return property(text[pos] + text[pos + 1]);
   }
+  return property(text[pos]);
+}
 
-  function isExtendedPictographicAt(pos: number) {
-    return extendedPictographic.test(text.substring(pos, pos + 2));
-  }
+function isExtendedPictographicAt(text: String, pos: number) {
+  return extendedPictographic.test(text.substring(pos, pos + 2));
+}
 
-  // Word_Break rule macros
-  // See: https://unicode.org/reports/tr29/#WB_Rule_Macros
-  function isAHLetter(prop: WordBreakProperty): boolean {
-    return (
-      prop === WordBreakProperty.ALetter ||
-      prop === WordBreakProperty.Hebrew_Letter
-    );
-  }
+// Word_Break rule macros
+// See: https://unicode.org/reports/tr29/#WB_Rule_Macros
+function isAHLetter(prop: WordBreakProperty): boolean {
+  return (
+    prop === WordBreakProperty.ALetter ||
+    prop === WordBreakProperty.Hebrew_Letter
+  );
+}
 
-  function isMidNumLetQ(prop: WordBreakProperty): boolean {
-    return (
-      prop === WordBreakProperty.MidNumLet ||
-      prop === WordBreakProperty.Single_Quote
-    );
-  }
+function isMidNumLetQ(prop: WordBreakProperty): boolean {
+  return (
+    prop === WordBreakProperty.MidNumLet ||
+    prop === WordBreakProperty.Single_Quote
+  );
 }
 
 function isStartOfSurrogatePair(character: string) {
