@@ -45,8 +45,7 @@ const NUMBER_OF_CODE_POINTS = 0x110000;
 const assert = (() => {
   if (typeof (globalThis as any).require === "function") {
     // If we're in node, use the built-in assert module.
-    return (test: boolean) =>
-      void (globalThis as any).require("assert").strictEqual(test, true);
+    return (test: boolean) => void (globalThis as any).require("assert").strictEqual(test, true);
   } else if (typeof (globalThis as any) === "object") {
     // If we're in the browser, use the console.assert.
     return (test: boolean) => void (globalThis as any).console.assert(test);
@@ -124,8 +123,7 @@ export function* findBoundaries(text: string): Generator<number, void, void> {
       break; // Reached the end of the string. We're done!
     }
     // WB3: Do not break within CRLF:
-    if (left === WordBreakProperty.CR && right === WordBreakProperty.LF)
-      continue;
+    if (left === WordBreakProperty.CR && right === WordBreakProperty.LF) continue;
     // WB3b: Otherwise, break after...
     if (
       left === WordBreakProperty.Newline ||
@@ -150,8 +148,7 @@ export function* findBoundaries(text: string): Generator<number, void, void> {
     // WB3c, but are prematurely split by WB4:
     if (
       left === WordBreakProperty.Other &&
-      (right === WordBreakProperty.Extend ||
-        right === WordBreakProperty.Format) &&
+      (right === WordBreakProperty.Extend || right === WordBreakProperty.Format) &&
       lookahead === WordBreakProperty.ZWJ
     ) {
       // To ensure this is not split, advance TWO positions forward.
@@ -167,15 +164,10 @@ export function* findBoundaries(text: string): Generator<number, void, void> {
     }
 
     // WB3c: Do not break within emoji ZWJ sequences.
-    if (left === WordBreakProperty.ZWJ && isExtendedPictographicAt(text, rightPos))
-      continue;
+    if (left === WordBreakProperty.ZWJ && isExtendedPictographicAt(text, rightPos)) continue;
 
     // WB3d: Keep horizontal whitespace together
-    if (
-      left === WordBreakProperty.WSegSpace &&
-      right == WordBreakProperty.WSegSpace
-    )
-      continue;
+    if (left === WordBreakProperty.WSegSpace && right == WordBreakProperty.WSegSpace) continue;
 
     // WB4: Ignore format and extend characters
     // This is to keep grapheme clusters together!
@@ -233,10 +225,7 @@ export function* findBoundaries(text: string): Generator<number, void, void> {
     )
       continue;
     // WB7a
-    if (
-      left === WordBreakProperty.Hebrew_Letter &&
-      right === WordBreakProperty.Single_Quote
-    )
+    if (left === WordBreakProperty.Hebrew_Letter && right === WordBreakProperty.Single_Quote)
       continue;
     // WB7b
     if (
@@ -255,11 +244,7 @@ export function* findBoundaries(text: string): Generator<number, void, void> {
     // Do not break within sequences of digits, or digits adjacent to letters.
     // e.g., "3a" or "A3"
     // WB8
-    if (
-      left === WordBreakProperty.Numeric &&
-      right === WordBreakProperty.Numeric
-    )
-      continue;
+    if (left === WordBreakProperty.Numeric && right === WordBreakProperty.Numeric) continue;
     // WB9
     if (isAHLetter(left) && right === WordBreakProperty.Numeric) continue;
     // WB10
@@ -280,11 +265,7 @@ export function* findBoundaries(text: string): Generator<number, void, void> {
     )
       continue;
     // WB13: Do not break between Katakana
-    if (
-      left === WordBreakProperty.Katakana &&
-      right === WordBreakProperty.Katakana
-    )
-      continue;
+    if (left === WordBreakProperty.Katakana && right === WordBreakProperty.Katakana) continue;
     // Do not break from extenders (e.g., U+202F NARROW NO-BREAK SPACE)
     // WB13a
     if (
@@ -365,17 +346,11 @@ function isExtendedPictographicAt(text: String, pos: number) {
 // Word_Break rule macros
 // See: https://unicode.org/reports/tr29/#WB_Rule_Macros
 function isAHLetter(prop: WordBreakProperty): boolean {
-  return (
-    prop === WordBreakProperty.ALetter ||
-    prop === WordBreakProperty.Hebrew_Letter
-  );
+  return prop === WordBreakProperty.ALetter || prop === WordBreakProperty.Hebrew_Letter;
 }
 
 function isMidNumLetQ(prop: WordBreakProperty): boolean {
-  return (
-    prop === WordBreakProperty.MidNumLet ||
-    prop === WordBreakProperty.Single_Quote
-  );
+  return prop === WordBreakProperty.MidNumLet || prop === WordBreakProperty.Single_Quote;
 }
 
 function isStartOfSurrogatePair(character: string) {

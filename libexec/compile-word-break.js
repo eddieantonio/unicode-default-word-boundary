@@ -12,26 +12,26 @@
  *
  * The generated file is saved to ../src/gen/WordBreakProperty.ts
  */
-const zlib = require('zlib');
-const fs = require('fs');
-const path = require('path');
+const zlib = require("zlib");
+const fs = require("fs");
+const path = require("path");
 
-const MAX_CODE_POINT = 0x10FFFF;
+const MAX_CODE_POINT = 0x10ffff;
 
 // Where to get the data:
 //  - http://www.unicode.org/reports/tr51/#emoji_data
 //  - https://www.unicode.org/reports/tr41/tr41-26.html#Props0
 
-//////////////////////////////////// Main ////////////////////////////////////
+/////////////////////////////////////////////// Main ///////////////////////////////////////////////
 
-const genDirectory = path.join(__dirname, '..', 'src', 'gen');
-const generatedFilename = path.join(genDirectory, 'WordBreakProperty.ts');
+const genDirectory = path.join(__dirname, "..", "src", "gen");
+const generatedFilename = path.join(genDirectory, "WordBreakProperty.ts");
 
 // Ensure this package's major version number is in sync with the Unicode
 // major version.
-const packageVersion = require('../package.json').version;
+const packageVersion = require("../package.json").version;
 const UNICODE_VERSION = (() => {
-  const [major, minor, patch] = packageVersion.split('.')
+  const [major, minor, patch] = packageVersion.split(".");
   return `${major}.${minor}.0`;
 })();
 
@@ -40,14 +40,13 @@ const UNICODE_VERSION = (() => {
 let wordBoundaryFilename = path.join(__dirname, `./WordBreakProperty-${UNICODE_VERSION}.txt.gz`);
 let emojiDataFilename = path.join(__dirname, `./emoji-data-${UNICODE_VERSION}.txt.gz`);
 
-///////////////////////////// Word_Boundary file /////////////////////////////
+//////////////////////////////////////// Word_Boundary file ////////////////////////////////////////
 
 // Extract the ranges IN ASCENDING ORDER from the file.
 // This will be the big binary search table.
-let ranges = readZippedCharacterPropertyFile(wordBoundaryFilename)
-  .sort((a, b) => {
-    return a.start - b.start;
-  });
+let ranges = readZippedCharacterPropertyFile(wordBoundaryFilename).sort((a, b) => {
+  return a.start - b.start;
+});
 
 // The list of ranges are initially sparse — having gaps between assigned
 // ranges. Fill in those gaps:
@@ -56,17 +55,18 @@ ensureDense(ranges);
 
 // The possible Word_Break property assignments.
 let categories = new Set();
-for (let {property} of ranges) {
+for (let { property } of ranges) {
   categories.add(property);
 }
 // Also add pseudo-categories of start-of-text and end-of-text:
-categories.add('sot');
-categories.add('eot');
+categories.add("sot");
+categories.add("eot");
 
-///////////////////////// Extended_Pictographic=Yes //////////////////////////
+//////////////////////////////////// Extended_Pictographic=Yes /////////////////////////////////////
 
-let extendedPictographicCodePoints = readZippedCharacterPropertyFile(emojiDataFilename)
-  .filter(({property}) => property === 'Extended_Pictographic');
+let extendedPictographicCodePoints = readZippedCharacterPropertyFile(emojiDataFilename).filter(
+  ({ property }) => property === "Extended_Pictographic"
+);
 
 // Try generating the regular expression both in a way that is
 // backwards-compatbile and one that only works in ES6+.
@@ -84,17 +84,15 @@ if (es6Regexp.length < compatibleRegexp.length) {
   console.warn(`Using compatibility regexp [${compatibleRegexp.length} chars]`);
 }
 
-////////////////////////////// Whitespace regex //////////////////////////////
+///////////////////////////////////////// Whitespace regex /////////////////////////////////////////
+
 let whitespaceRanges = ranges.filter(
   ({ property }) =>
-    property === "CR" ||
-    property === "LF" ||
-    property === "Newline" ||
-    property === "WSegSpace"
+    property === "CR" || property === "LF" || property === "Newline" || property === "WSegSpace"
 );
 let whitespaceRegExp = createRegExp(whitespaceRanges);
 
-//////////////////////// Creating the generated file /////////////////////////
+/////////////////////////////////// Creating the generated file ////////////////////////////////////
 
 // Save the output in the gen/ directory.
 let stream = fs.createWriteStream(generatedFilename);
@@ -105,10 +103,11 @@ stream.write(`// Automatically generated file. DO NOT MODIFY.
  * Valid values for a word break property.
  */
 export const enum WordBreakProperty {
-${ /* Create enum values for each word break property */
+${
+  /* Create enum values for each word break property */
   Array.from(categories)
-    .map(x => `  ${x}`)
-    .join(',\n')
+    .map((x) => `  ${x}`)
+    .join(",\n")
 }
 };
 
@@ -124,12 +123,14 @@ export const enum I {
 }
 
 export const WORD_BREAK_PROPERTY: [number, WordBreakProperty][] = [
-${
-    ranges.map(({start, property}) => (`  [` +
+${ranges
+  .map(
+    ({ start, property }) =>
+      `  [` +
       `/*start*/ 0x${start.toString(16).toUpperCase()}, ` +
       `WordBreakProperty.${property}],`
-    )).join('\n')
-}
+  )
+  .join("\n")}
 ];
 `);
 
@@ -155,13 +156,12 @@ ${
  * points), then end === start.
  */
 function readZippedCharacterPropertyFile(filename) {
-  let textContents = zlib.gunzipSync(
-    fs.readFileSync(filename)
-  ).toString('utf8');
+  let textContents = zlib.gunzipSync(fs.readFileSync(filename)).toString("utf8");
 
-  return textContents.split('\n')
-    .filter(line => !line.startsWith('#') && line.trim())
-    .map(line => {
+  return textContents
+    .split("\n")
+    .filter((line) => !line.startsWith("#") && line.trim())
+    .map((line) => {
       let [_, startText, endText, property] = line.match(
         // Parse lines that look like this:
         // 0000             .. 0000               ;   CategoryName
@@ -194,14 +194,14 @@ function parseCodepoint(hexString) {
 }
 
 function toUnicodeEscape(codePoint) {
-  let isBMP = codePoint <= 0xFFFF;
+  let isBMP = codePoint <= 0xffff;
   let simpleConversion = codePoint.toString(16).toUpperCase();
 
   let padding = (isBMP ? 4 : 6) - simpleConversion.length;
-  let digits = '0'.repeat(padding) + simpleConversion;
+  let digits = "0".repeat(padding) + simpleConversion;
 
   if (isBMP) {
-    return '\\u' + digits;
+    return "\\u" + digits;
   } else {
     return `\\u{${digits}}`;
   }
@@ -209,19 +209,19 @@ function toUnicodeEscape(codePoint) {
 
 function utf16AlternativesStrategy() {
   let codePoints = [];
-  for (let {start, end} of extendedPictographicCodePoints) {
-    for (let current = start; current <= end; current ++) {
+  for (let { start, end } of extendedPictographicCodePoints) {
+    for (let current = start; current <= end; current++) {
       codePoints.push(current);
     }
   }
 
   let alternatives = codePoints.map(codePointToUTF16Escape);
-  return `/^(?:${alternatives.join('|')})/`;
+  return `/^(?:${alternatives.join("|")})/`;
 }
 
 function createRegExp(ranges) {
   let regexp = "";
-  for (let {start, end} of ranges) {
+  for (let { start, end } of ranges) {
     if (start === end) {
       regexp += toUnicodeEscape(start);
     } else {
@@ -233,30 +233,32 @@ function createRegExp(ranges) {
 
 function codePointToUTF16Escape(codePoint) {
   // Scalar values remain the same
-  if (codePoint <= 0xFFFF) {
+  if (codePoint <= 0xffff) {
     return toUnicodeEscape(codePoint);
   }
 
-  const LOWEST_TEN_BITS_MASK = 0x03FF;
+  const LOWEST_TEN_BITS_MASK = 0x03ff;
   let astralBits = codePoint - 0x10000;
 
-  let highSurrogate = 0xD800 + (astralBits >>> 10);
-  let lowSurrogate = 0xDC00 + (astralBits & LOWEST_TEN_BITS_MASK);
+  let highSurrogate = 0xd800 + (astralBits >>> 10);
+  let lowSurrogate = 0xdc00 + (astralBits & LOWEST_TEN_BITS_MASK);
 
-  console.assert(highSurrogate <= 0xDBFF);
-  console.assert(lowSurrogate <= 0xDFFF);
-  console.assert(String.fromCharCode(highSurrogate) + String.fromCharCode(lowSurrogate) ===
-                 String.fromCodePoint(codePoint));
+  console.assert(highSurrogate <= 0xdbff);
+  console.assert(lowSurrogate <= 0xdfff);
+  console.assert(
+    String.fromCharCode(highSurrogate) + String.fromCharCode(lowSurrogate) ===
+      String.fromCodePoint(codePoint)
+  );
   return codePointToUTF16Escape(highSurrogate) + codePointToUTF16Escape(lowSurrogate);
 }
 
 function unicodeRangeStrategy() {
-  let regexp = '';
-  for (let {start, end} of extendedPictographicCodePoints) {
+  let regexp = "";
+  for (let { start, end } of extendedPictographicCodePoints) {
     if (start === end) {
       regexp += toUnicodeEscape(start);
     } else {
-      regexp += toUnicodeEscape(start) + '-' + toUnicodeEscape(end);
+      regexp += toUnicodeEscape(start) + "-" + toUnicodeEscape(end);
     }
   }
   return `/^[${regexp}]/u`;
@@ -268,9 +270,9 @@ function makeDense(ranges) {
 
 function ensureDense(ranges) {
   let lastEnd = -1;
-  let lastProperty = 'sot';
+  let lastProperty = "sot";
   for (let range of ranges) {
-    let {start, end, property} = range
+    let { start, end, property } = range;
 
     if (lastEnd + 1 !== start) {
       throw new Error(`Non-adjacent range: ${JSON.stringify(range)}`);
@@ -284,7 +286,6 @@ function ensureDense(ranges) {
     lastProperty = property;
   }
 }
-
 
 function joinSameAdjacentProperties(ranges) {
   console.assert(ranges.length > 1);
@@ -317,7 +318,7 @@ function fillInGaps(ranges) {
         start: nextUnaccountedCodepoint,
         end: range.start - 1,
         // If it's unassigned in the file, it should be 'Other'.
-        property: 'Other',
+        property: "Other",
       });
     }
 
@@ -330,8 +331,8 @@ function fillInGaps(ranges) {
     denseRanges.push({
       start: nextUnaccountedCodepoint,
       end: MAX_CODE_POINT,
-      property: 'Other',
-    })
+      property: "Other",
+    });
   }
 
   return denseRanges;
