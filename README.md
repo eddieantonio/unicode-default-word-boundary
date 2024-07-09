@@ -56,7 +56,8 @@ split(`ᑕᐻ ᒥᔪ ᑭᓯᑲᐤ ᐊᓄᐦᐨ᙮`);
 
 ...and many more!
 
-More advanced use cases will want to use the `findSpans()` or the `findBoundaries` function.
+More advanced use cases will want to use the `findSpans()` or the
+`findBoundaries()` function.
 
 
 What doesn't work
@@ -131,7 +132,7 @@ differ from simple objects.
 
 `findBoundaries()` is like `findSpans()` except it yields the _index_ of
 each successive word boundary. Anecdotally, using this function directly
-might be faster than generating spans objects with `findSpans()`.
+may be faster than generating spans objects with `findSpans()`.
 
 
 Contributing and Maintaining
@@ -145,9 +146,11 @@ These data files have been compressed and committed to this repository
 in `libexec/`:
 
     libexec/
-    ├── WordBreakProperty-12.0.0.txt.gz
+    libexec/
+    ├── WordBreakProperty-15.1.0.txt.gz
     ├── compile-word-break.js
-    └── emoji-data-12.0.0.txt.gz
+    └── emoji-data-15.1.0.txt.gz
+
 
 **Note that `compile-word-break.js` actually creates
 `./src/gen/WordBreakProperty.ts`!**
@@ -171,13 +174,13 @@ To run the benchmarks, you can run the following:
 
     npm run benchmarks
 
-If you want to compare the current implementations with a new
+If you want to compare the current implementation with a new
 implementation, what I do is create a new working tree called `opt/`:
 
-    git worktree add -b new-version-with-optimizations opt 
+    git worktree add -b «NEW-BRANCH-NAME» opt
 
-Then, I make changes inside the working tree inside `opt/`, **compile
-and run the tests**, then, in the main working tree, I can run
+Then, I make changes in the working tree inside `opt/`, **compile
+and run the tests**, then, in the main working tree, I run the
 benchmarks:
 
     cd opt/
