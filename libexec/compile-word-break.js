@@ -70,7 +70,6 @@ for (let { start, end, property } of ranges) {
 }
 
 let singletons = new Set();
-let outsideIndex = 16; // will be used to generate "outside" properties
 for (let [property, count] of codepointsPerProperty.entries()) {
   if (count == 1) singletons.add(property);
 }
@@ -100,6 +99,9 @@ let whitespaceRegExp = createRegExp(whitespaceRanges);
 // Save the output in the gen/ directory.
 let stream = fs.createWriteStream(generatedFilename);
 
+let insideIndex = 0; // will be used to denote explicitly encoded properties
+let outsideIndex = 16; // will be used to generate "outside" properties
+
 // Generate the file!
 stream.write(`// Automatically generated file. DO NOT MODIFY.
 /**
@@ -113,7 +115,7 @@ ${
       if (singletons.has(property)) {
         return `  ${property} = ${outsideIndex++}`;
       } else {
-        return `  ${property}`;
+        return `  ${property} = ${insideIndex++}`;
       }
     })
     .join(",\n")
