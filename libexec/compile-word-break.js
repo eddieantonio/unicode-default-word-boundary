@@ -44,9 +44,9 @@ let emojiDataFilename = path.join(__dirname, `./emoji-data-${UNICODE_VERSION}.tx
 
 // Extract the ranges IN ASCENDING ORDER from the file.
 // This will be the big binary search table.
-let ranges = readZippedCharacterPropertyFile(wordBoundaryFilename).sort((a, b) => {
-  return a.start - b.start;
-});
+let ranges = readZippedCharacterPropertyFile(wordBoundaryFilename).sort(
+  (a, b) => a.start - b.start
+);
 
 // The list of ranges are initially sparse — having gaps between assigned
 // ranges. Fill in those gaps:
@@ -67,22 +67,7 @@ categories.add("eot");
 let extendedPictographicCodePoints = readZippedCharacterPropertyFile(emojiDataFilename).filter(
   ({ property }) => property === "Extended_Pictographic"
 );
-
-// Try generating the regular expression both in a way that is
-// backwards-compatbile and one that only works in ES6+.
-let extendedPictographicRegExp;
-let compatibleRegexp = utf16AlternativesStrategy();
-let es6Regexp = unicodeRangeStrategy();
-
-// Choose the shortest regular expression.
-// In my experience, the ES6 regexp is an order of magnitude smaller!
-if (es6Regexp.length < compatibleRegexp.length) {
-  extendedPictographicRegExp = es6Regexp;
-  console.warn(`Using ES6 regexp [${es6Regexp.length} chars]`);
-} else {
-  extendedPictographicRegExp = compatibleRegexp;
-  console.warn(`Using compatibility regexp [${compatibleRegexp.length} chars]`);
-}
+let extendedPictographicRegExp = createExtendedPictographRegExp();
 
 ///////////////////////////////////////// Whitespace regex /////////////////////////////////////////
 
@@ -134,6 +119,8 @@ ${ranges
 ];
 `);
 
+///////////////////////////////////////////// Helpers //////////////////////////////////////////////
+
 /**
  * Reads a Unicode character property file.
  *
@@ -145,7 +132,7 @@ ${ranges
  * semi-colon, followed by the property text. e.g.,
  *
  *    1F600         ; Emoji                #  6.1  [1] (😀)        grinning face
- *    26C4..26C5    ; Emoji_Presentation   #  5.2  [2] (⛄..⛅)    snowman without snow..sun behind butt
+ *    26C4..26C5    ; Emoji_Presentation   #  5.2  [2] (⛄..⛅)    snowman without snow..sun behind cloud
  *
  * This will read the file at the given filename, and return an ordered array
  * or property lines, with attributes:
@@ -207,18 +194,6 @@ function toUnicodeEscape(codePoint) {
   }
 }
 
-function utf16AlternativesStrategy() {
-  let codePoints = [];
-  for (let { start, end } of extendedPictographicCodePoints) {
-    for (let current = start; current <= end; current++) {
-      codePoints.push(current);
-    }
-  }
-
-  let alternatives = codePoints.map(codePointToUTF16Escape);
-  return `/^(?:${alternatives.join("|")})/`;
-}
-
 function createRegExp(ranges) {
   let regexp = "";
   for (let { start, end } of ranges) {
@@ -231,28 +206,7 @@ function createRegExp(ranges) {
   return `/^[${regexp}]+$/`;
 }
 
-function codePointToUTF16Escape(codePoint) {
-  // Scalar values remain the same
-  if (codePoint <= 0xffff) {
-    return toUnicodeEscape(codePoint);
-  }
-
-  const LOWEST_TEN_BITS_MASK = 0x03ff;
-  let astralBits = codePoint - 0x10000;
-
-  let highSurrogate = 0xd800 + (astralBits >>> 10);
-  let lowSurrogate = 0xdc00 + (astralBits & LOWEST_TEN_BITS_MASK);
-
-  console.assert(highSurrogate <= 0xdbff);
-  console.assert(lowSurrogate <= 0xdfff);
-  console.assert(
-    String.fromCharCode(highSurrogate) + String.fromCharCode(lowSurrogate) ===
-      String.fromCodePoint(codePoint)
-  );
-  return codePointToUTF16Escape(highSurrogate) + codePointToUTF16Escape(lowSurrogate);
-}
-
-function unicodeRangeStrategy() {
+function createExtendedPictographRegExp() {
   let regexp = "";
   for (let { start, end } of extendedPictographicCodePoints) {
     if (start === end) {
